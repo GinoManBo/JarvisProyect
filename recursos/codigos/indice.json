@@ -1,0 +1,56 @@
+[
+  {
+    "slug": "civil",
+    "sigla": "CC",
+    "nombre": "Código Civil",
+    "articulos": 2542
+  },
+  {
+    "slug": "penal",
+    "sigla": "CP",
+    "nombre": "Código Penal",
+    "articulos": 629
+  },
+  {
+    "slug": "procesal-penal",
+    "sigla": "CPP",
+    "nombre": "Código Procesal Penal",
+    "articulos": 560
+  },
+  {
+    "slug": "procedimiento-civil",
+    "sigla": "CPC",
+    "nombre": "Código de Procedimiento Civil",
+    "articulos": 882
+  },
+  {
+    "slug": "constitucion",
+    "sigla": "CPR",
+    "nombre": "Constitución Política",
+    "articulos": 168
+  },
+  {
+    "slug": "trabajo",
+    "sigla": "CT",
+    "nombre": "Código del Trabajo",
+    "articulos": 732
+  },
+  {
+    "slug": "comercio",
+    "sigla": "CCom",
+    "nombre": "Código de Comercio",
+    "articulos": 1239
+  },
+  {
+    "slug": "organico-tribunales",
+    "sigla": "COT",
+    "nombre": "Código Orgánico de Tribunales",
+    "articulos": 619
+  },
+  {
+    "slug": "tributario",
+    "sigla": "CTrib",
+    "nombre": "Código Tributario",
+    "articulos": 251
+  }
+]
