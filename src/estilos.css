@@ -19,8 +19,9 @@
 
   --marca-amarillo: #fbe98a;
   --marca-rosa: #f6c2d6;
-  /* Malla: la X sobre el bloque azul y el brillo del ramo en curso. */
+  /* Malla: la X roja del aprobado y el azul chillón del ramo en curso. */
   --rojo-x: #e31b23;
+  --azul-vivo: #35b5ff;
   --oro: #f0c93c;
   --marca-verde: #c2e3c6;
   --marca-azul: #c6dcf4;
@@ -31,29 +32,53 @@
 
   --sombra: 0 1px 2px rgba(22, 24, 29, 0.04), 0 8px 24px -12px rgba(22, 24, 29, 0.12);
   --paso: 160ms cubic-bezier(0.2, 0, 0.2, 1);
+
+  /* Vidrio: papel esmerilado. Los paneles dejan pasar el fondo con blur. */
+  --vidrio: rgba(250, 249, 246, 0.62);
+  --vidrio-borde: rgba(255, 255, 255, 0.55);
+  /* Los dos tintes del fondo ambiental que el vidrio refracta. */
+  --tinte-azul: rgba(43, 58, 140, 0.07);
+  --tinte-rosa: rgba(246, 194, 214, 0.28);
+  /* Relieve: los controles salen del papel (o se hunden, apretados). */
+  --relieve: -3px -3px 7px rgba(255, 255, 255, 0.9), 3px 3px 7px rgba(22, 24, 29, 0.1);
+  --relieve-hundido:
+    inset 2px 2px 5px rgba(22, 24, 29, 0.09), inset -2px -2px 5px rgba(255, 255, 255, 0.9);
+  --radio: 7px;
 }
 
+/* Modo oscuro: tinta de medianoche, no gris. El papel es azul-negro (de noche
+   la tinta se vuelve el papel), el texto es crema cálido — papel leído a la luz
+   de una lámpara — y las líneas llevan el mismo tinte azul de fondo. */
 :root[data-tema='oscuro'] {
   color-scheme: dark;
-  --papel: #15161b;
-  --papel-hondo: #1c1e24;
-  --tinta: #e9e8e3;
-  --tinta-suave: #a3a5ad;
-  --tinta-tenue: #71747d;
-  --regla: #2b2e36;
-  --regla-fina: #23252c;
-  --azul: #93a3ea;
-  --azul-tenue: #23273c;
-  --alarma: #e08494;
+  --papel: #101319;
+  --papel-hondo: #171b24;
+  --tinta: #ece7db;
+  --tinta-suave: #b0aba0;
+  --tinta-tenue: #857f76;
+  --regla: #262c3a;
+  --regla-fina: #1d2230;
+  --azul: #7e97ff;
+  --azul-tenue: #1f2642;
+  --alarma: #e56676;
 
-  --marca-amarillo: #6b5f1f;
-  --marca-rosa: #6d3a4d;
+  --marca-amarillo: #7d6619;
+  --marca-rosa: #7a3652;
   --rojo-x: #ff3b47;
-  --oro: #e3c355;
-  --marca-verde: #33543a;
-  --marca-azul: #2c4664;
+  --azul-vivo: #2fa7f0;
+  --oro: #dcb84f;
+  --marca-verde: #2f5c40;
+  --marca-azul: #2b4a75;
 
-  --sombra: 0 1px 2px rgba(0, 0, 0, 0.3), 0 8px 24px -12px rgba(0, 0, 0, 0.6);
+  --sombra: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+
+  --vidrio: rgba(23, 27, 36, 0.55);
+  --vidrio-borde: rgba(255, 255, 255, 0.07);
+  --tinte-azul: rgba(126, 151, 255, 0.07);
+  --tinte-rosa: rgba(122, 54, 82, 0.25);
+  --relieve: -3px -3px 7px rgba(255, 255, 255, 0.03), 3px 3px 7px rgba(0, 0, 0, 0.5);
+  --relieve-hundido:
+    inset 2px 2px 5px rgba(0, 0, 0, 0.5), inset -2px -2px 5px rgba(255, 255, 255, 0.03);
 }
 
 * {
@@ -67,8 +92,15 @@ body,
   margin: 0;
 }
 
+/* El papel ya no es plano: dos aguadas de tinta y rosa, fijas, muy tenues.
+   Son lo que los paneles de vidrio refractan al pasar por encima. */
 body {
-  background: var(--papel);
+  background:
+    radial-gradient(1100px 700px at 10% -8%, var(--tinte-azul), transparent 60%),
+    radial-gradient(900px 600px at 105% 8%, var(--tinte-rosa), transparent 55%),
+    radial-gradient(1000px 800px at 50% 115%, var(--tinte-azul), transparent 60%),
+    var(--papel);
+  background-attachment: fixed;
   color: var(--tinta);
   font-family: var(--sans);
   font-size: 14px;
@@ -131,6 +163,30 @@ textarea {
   }
 }
 
+/* Si macOS pide menos transparencia, el vidrio vuelve a ser papel opaco. */
+@media (prefers-reduced-transparency: reduce) {
+  body {
+    background: var(--papel);
+  }
+
+  .barra,
+  .herramientas,
+  .aviso-limite {
+    background: var(--papel);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+
+  .indice,
+  .panel,
+  .dia,
+  .formulario {
+    background: var(--papel-hondo);
+    -webkit-backdrop-filter: none;
+    backdrop-filter: none;
+  }
+}
+
 /* Una sola manera de entrar: la tinta asienta, no salta. La usan las vistas al
    cambiar de sección, el mes al pasar la hoja y la respuesta al descubrirse. */
 @keyframes entrar {
@@ -160,7 +216,9 @@ textarea {
   padding: 0 24px;
   height: 52px;
   border-bottom: 1px solid var(--regla);
-  background: var(--papel);
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
   -webkit-app-region: drag;
   padding-left: 88px; /* deja pasar los semáforos de macOS */
   flex: none;
@@ -298,15 +356,21 @@ textarea {
 
 /* --- Piezas base --------------------------------------------------------- */
 
+/* Los botones salen del papel en relieve; apretados, se hunden en él. */
 .btn {
   appearance: none;
   background: var(--papel);
   border: 1px solid var(--regla);
-  border-radius: 3px;
+  border-radius: var(--radio);
   padding: 5px 11px;
   color: var(--tinta-suave);
   cursor: pointer;
-  transition: border-color var(--paso), color var(--paso), background var(--paso);
+  box-shadow: var(--relieve);
+  transition:
+    border-color var(--paso),
+    color var(--paso),
+    background var(--paso),
+    box-shadow var(--paso);
 }
 
 .btn:hover {
@@ -314,15 +378,17 @@ textarea {
   color: var(--tinta);
 }
 
-/* Apretar se siente: el botón baja medio paso. */
+/* Apretar se siente: el botón baja medio paso y se hunde en el papel. */
 .btn:active:not(:disabled) {
   transform: translateY(1px);
+  box-shadow: var(--relieve-hundido);
 }
 
 .btn--fuerte {
   background: var(--azul);
   border-color: var(--azul);
   color: #fff;
+  box-shadow: 0 3px 10px -3px var(--azul);
 }
 
 :root[data-tema='oscuro'] .btn--fuerte {
@@ -342,6 +408,7 @@ textarea {
   border-color: transparent;
   background: none;
   padding: 5px 8px;
+  box-shadow: none;
 }
 
 .btn--peligro:hover {
@@ -349,19 +416,21 @@ textarea {
   color: var(--alarma);
 }
 
+/* Los campos son pozos: hundidos en el papel, se escribe adentro. */
 .campo {
   width: 100%;
   background: var(--papel);
   border: 1px solid var(--regla);
-  border-radius: 3px;
+  border-radius: var(--radio);
   padding: 7px 10px;
-  transition: border-color var(--paso);
+  box-shadow: var(--relieve-hundido);
+  transition: border-color var(--paso), box-shadow var(--paso);
 }
 
 .campo:focus {
   outline: none;
   border-color: var(--azul);
-  box-shadow: 0 0 0 3px var(--azul-tenue);
+  box-shadow: var(--relieve-hundido), 0 0 0 3px var(--azul-tenue);
 }
 
 .campo::placeholder {
@@ -478,7 +547,9 @@ button.tag:hover {
 
 .indice {
   border-right: 1px solid var(--regla);
-  background: var(--papel-hondo);
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
   display: flex;
   flex-direction: column;
   min-height: 0;
@@ -638,7 +709,11 @@ button.tag:hover {
   gap: 3px;
   padding: 7px 0 9px;
   margin-bottom: 8px;
-  background: linear-gradient(var(--papel) 78%, transparent);
+  /* Vidrio, no degradado: el apunte pasa esmerilado por detrás al hacer scroll. */
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(12px);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--regla-fina);
   flex-wrap: wrap;
 }
 
@@ -996,8 +1071,9 @@ button.tag:hover {
   color: var(--tinta);
   background: var(--papel);
   border: 1px solid var(--regla);
-  border-radius: 3px;
+  border-radius: var(--radio);
   padding: 5px 4px;
+  box-shadow: var(--relieve-hundido);
 }
 
 .tiempo__valor:focus {
@@ -1039,7 +1115,9 @@ button.tag:hover {
 
 .panel {
   border-left: 1px solid var(--regla);
-  background: var(--papel-hondo);
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
   padding: 20px 18px;
   overflow-y: auto;
   display: flex;
@@ -1076,8 +1154,9 @@ button.tag:hover {
   color: var(--tinta);
   background: var(--papel);
   border: 1px solid var(--regla);
-  border-radius: 3px;
+  border-radius: var(--radio);
   padding: 4px 6px;
+  box-shadow: var(--relieve-hundido);
 }
 
 .ajuste__num:focus {
@@ -1101,16 +1180,19 @@ button.tag:hover {
   border-radius: 3px;
   cursor: pointer;
   text-align: left;
-  transition: border-color var(--paso), background var(--paso);
+  box-shadow: var(--relieve);
+  transition: border-color var(--paso), background var(--paso), box-shadow var(--paso);
 }
 
 .preset:hover {
   border-color: var(--tinta-tenue);
 }
 
+/* El preset elegido queda hundido: es el que está puesto. */
 .preset--puesto {
   border-color: var(--azul);
   background: var(--azul-tenue);
+  box-shadow: var(--relieve-hundido);
 }
 
 .preset__nombre {
@@ -1133,8 +1215,10 @@ button.tag:hover {
   gap: 10px;
   padding: 10px 12px;
   border: 2px solid var(--alarma);
-  border-radius: 3px;
-  background: var(--papel);
+  border-radius: var(--radio);
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(14px);
+  backdrop-filter: blur(14px);
   box-shadow: var(--sombra);
 }
 
@@ -1168,12 +1252,13 @@ button.tag:hover {
   color: var(--azul);
   background: var(--azul-tenue);
   cursor: pointer;
+  box-shadow: var(--relieve);
   transition: transform 1s ease-in-out, box-shadow 1s ease-in-out;
 }
 
 /* Mientras se respira, un halo suave alrededor: aire, no alarma. */
 .respirar__circulo:not([data-fase='quieto']) {
-  box-shadow: 0 0 0 7px var(--azul-tenue);
+  box-shadow: var(--relieve), 0 0 0 7px var(--azul-tenue);
 }
 
 .respirar__circulo[data-fase='inhala'] {
@@ -1281,7 +1366,8 @@ button.tag:hover {
 .carta-edit {
   background: var(--papel);
   border: 1px solid var(--regla);
-  border-radius: 4px;
+  border-radius: var(--radio);
+  box-shadow: var(--relieve);
   padding: 14px 16px;
   display: flex;
   flex-direction: column;
@@ -1618,9 +1704,12 @@ button.tag:hover {
   gap: 8px;
   align-items: end;
   padding: 16px;
-  background: var(--papel-hondo);
-  border: 1px solid var(--regla);
-  border-radius: 4px;
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  border: 1px solid var(--vidrio-borde);
+  box-shadow: var(--sombra);
+  border-radius: var(--radio);
   margin-bottom: 8px;
 }
 
@@ -1656,7 +1745,9 @@ button.tag:hover {
 
 .dia {
   border-left: 1px solid var(--regla);
-  background: var(--papel-hondo);
+  background: var(--vidrio);
+  -webkit-backdrop-filter: blur(18px) saturate(1.4);
+  backdrop-filter: blur(18px) saturate(1.4);
   padding: 22px 18px;
   overflow-y: auto;
   display: flex;
@@ -1835,6 +1926,15 @@ button.tag:hover {
   gap: 6px;
 }
 
+/* La malla se despliega como abanico: cada semestre entra un paso después del
+   anterior, de primero a décimo. El --col lo pone la vista. */
+.malla__anio,
+.malla__sem,
+.malla__columna {
+  animation: entrar 280ms cubic-bezier(0.2, 0, 0, 1) both;
+  animation-delay: calc(var(--col, 0) * 40ms);
+}
+
 /* Cada ramo es un bloque del folleto impreso: papel con su borde fino. Los
    estados son las marcas que ella deja encima — el destacador amarillo del que
    está cursando, la X de lápiz rojo del que ya aprobó. */
@@ -1854,18 +1954,46 @@ button.tag:hover {
   line-height: 1.25;
   text-align: center;
   cursor: pointer;
-  transition: border-color var(--paso), color var(--paso), background var(--paso);
+  transition:
+    border-color var(--paso),
+    color var(--paso),
+    background var(--paso),
+    transform var(--paso),
+    box-shadow var(--paso);
 }
 
+/* Al pasar por encima el bloque se despega del papel; al apretarlo, vuelve. */
 .bloque:hover {
   border-color: var(--tinta-tenue);
   color: var(--tinta);
+  transform: translateY(-1px);
+  box-shadow: var(--relieve);
 }
 
-/* La X roja: dos trazos cruzados encima, el nombre se apaga detrás. */
+.bloque:active {
+  transform: none;
+  box-shadow: none;
+}
+
+/* La X roja: dos trazos cruzados encima, el nombre se apaga detrás. El bloque
+   recibe la X como un timbre: se hunde un pelo y vuelve. */
 .bloque--x {
   background: var(--papel-hondo);
   color: var(--tinta-tenue);
+  animation: sello 240ms cubic-bezier(0.2, 0, 0, 1);
+}
+
+@keyframes sello {
+  0%,
+  100% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(0.96);
+  }
+  70% {
+    transform: scale(1.015);
+  }
 }
 
 .bloque--x::before,
@@ -1909,29 +2037,42 @@ button.tag:hover {
   }
 }
 
-/* El ramo en curso: la pasada de destacador amarillo, con un brillo que
-   respira despacio. El gradiente deja las puntas sin pintar, como una pasada
-   de plumón de verdad. */
+/* El ramo en curso: la pasada de destacador azul chillón, con un brillo que
+   respira despacio. El gradiente sólido existe sólo para poder animar la
+   pasada con background-size — un color plano no se puede barrer. */
 .bloque--brillo {
-  background: linear-gradient(
-    100deg,
-    transparent 0%,
-    var(--marca-amarillo) 4%,
-    var(--marca-amarillo) 97%,
-    transparent 100%
-  );
-  border-color: var(--oro);
+  background:
+    linear-gradient(var(--azul-vivo), var(--azul-vivo)) left center / 100% 100% no-repeat;
+  border-color: var(--azul);
   color: var(--tinta);
-  animation: palpitar 2.4s ease-in-out infinite;
+  /* Primero la pasada del plumón, de izquierda a derecha; después respira. */
+  animation:
+    destacar 320ms cubic-bezier(0.2, 0, 0, 1),
+    palpitar 2.4s ease-in-out infinite;
+}
+
+/* En oscuro el bloque chillón lleva la letra en tinta del papel: pegatina
+   neón con texto oscuro, no crema sobre celeste. */
+:root[data-tema='oscuro'] .bloque--brillo {
+  color: var(--papel);
+}
+
+@keyframes destacar {
+  from {
+    background-size: 0% 100%;
+  }
+  to {
+    background-size: 100% 100%;
+  }
 }
 
 @keyframes palpitar {
   0%,
   100% {
-    box-shadow: 0 0 4px 0 var(--oro);
+    box-shadow: 0 0 4px 0 var(--azul-vivo);
   }
   50% {
-    box-shadow: 0 0 14px 2px var(--oro);
+    box-shadow: 0 0 14px 2px var(--azul-vivo);
   }
 }
 

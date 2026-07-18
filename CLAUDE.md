@@ -71,7 +71,7 @@ a Save button.
 **Malla.** `src/lib/malla.ts` holds the 61 blocks of the law degree (5 years, 10
 semesters) as static data; the block id is the slug of its name, and that id is the
 key into the `malla` collection — renaming a subject orphans its saved state. Each
-block cycles nothing → red X (passed) → gold glow (taking it now) → nothing.
+block cycles nothing → red X (passed) → vivid-blue highlight (taking it now, `--azul-vivo`) → nothing.
 
 **Dates are the sharp edge.** Everything is a local `YYYY-MM-DD` string, never a
 `Date` in state and never `toISOString().slice(0,10)` — in Chile that returns the
@@ -135,6 +135,18 @@ vertical line that annotated legal codes have. Notes are written to its right;
 citation sources (`Art. 1545 CC`) hang to its left. It's the one bold move; keep
 everything else quiet. The navbar is deliberately flat and straight (no pills, no
 radius, no shadow) because that's what was asked for.
+
+On top of the paper base there are two material layers, both token-driven:
+**glass** (`--vidrio`, `--vidrio-borde` + `backdrop-filter`) for structural
+surfaces — navbar, side indices/panels, the sticky editor toolbar, the event
+form — refracting the fixed ambient tints (`--tinte-azul`, `--tinte-rosa`) that
+the body paints under everything; and **relief** (`--relieve` raised,
+`--relieve-hundido` pressed/inset, radius `--radio`) for controls — buttons rise
+from the paper, fields are wells sunk into it, the active preset sits pressed.
+Content itself (calendar cells, malla blocks, flashcards, the written page)
+stays opaque printed paper: glass is for chrome, relief is for controls, never
+for content. `prefers-reduced-transparency` collapses all glass back to opaque
+paper.
 
 Dark mode swaps the same variables under `:root[data-tema='oscuro']`. Any new
 color must be added to both blocks.

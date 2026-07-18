@@ -62,20 +62,24 @@ export default function Malla() {
 
       <div className="malla__lienzo">
         <div className="malla__cuadricula">
-          {ANIOS.map((a) => (
-            <span key={a} className="malla__anio">
+          {ANIOS.map((a, i) => (
+            <span key={a} className="malla__anio" style={{ '--col': i * 2 } as React.CSSProperties}>
               {a}
             </span>
           ))}
 
-          {SEMESTRES.map((s) => (
-            <span key={s.nombre} className="malla__sem">
+          {SEMESTRES.map((s, i) => (
+            <span key={s.nombre} className="malla__sem" style={{ '--col': i } as React.CSSProperties}>
               {s.nombre}
             </span>
           ))}
 
-          {SEMESTRES.map((s) => (
-            <div key={s.nombre} className="malla__columna">
+          {SEMESTRES.map((s, i) => (
+            <div
+              key={s.nombre}
+              className="malla__columna"
+              style={{ '--col': i } as React.CSSProperties}
+            >
               {s.ramos.map((r) => {
                 const estado = malla[r.id]
                 return (
