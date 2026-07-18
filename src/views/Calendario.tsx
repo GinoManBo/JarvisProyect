@@ -88,7 +88,7 @@ export default function Calendario() {
           ))}
         </div>
 
-        <div className="cal__cuadricula">
+        <div className="cal__cuadricula" key={`${anio}-${mes}`}>
           {semanas.flat().map((clave) => {
             const d = desdeClave(clave)
             const fuera = d.getMonth() !== mes

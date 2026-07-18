@@ -29,6 +29,7 @@ export default function Malla() {
 
   const aprobados = Object.values(malla).filter((e) => e === 'x').length
   const total = SEMESTRES.reduce((n, s) => n + s.ramos.length, 0)
+  const avance = total ? Math.round((aprobados / total) * 100) : 0
 
   return (
     <div className="malla">
@@ -37,6 +38,14 @@ export default function Malla() {
         <span className="malla__cuenta">
           {aprobados} de {total} aprobados
         </span>
+        <div
+          className="malla__progreso"
+          role="img"
+          aria-label={`${avance}% de la carrera aprobado`}
+          title={`${avance}% de la carrera`}
+        >
+          <div className="malla__progreso-tinta" style={{ width: `${avance}%` }} />
+        </div>
         <div className="malla__leyenda">
           {LEYENDA.map(({ estado, texto }) => (
             <span key={texto} className="malla__clave">

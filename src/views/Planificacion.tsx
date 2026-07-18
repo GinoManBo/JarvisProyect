@@ -155,7 +155,7 @@ export default function Planificacion() {
           <>
             <h2 className="plan__seccion">Ya pasó</h2>
             {pasados.slice(0, 8).map((e) => (
-              <div key={e.id} className="evento" style={{ opacity: 0.5 }}>
+              <div key={e.id} className="evento evento--pasado">
                 <span className="evento__cuando">{textoCuentaRegresiva(e.fecha)}</span>
                 <span className="evento__que">
                   <span

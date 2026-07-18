@@ -5,6 +5,7 @@
    ========================================================================== */
 
 :root {
+  color-scheme: light;
   --papel: #faf9f6;
   --papel-hondo: #f2f1ec;
   --tinta: #16181d;
@@ -19,7 +20,7 @@
   --marca-amarillo: #fbe98a;
   --marca-rosa: #f6c2d6;
   /* Malla: la X sobre el bloque azul y el brillo del ramo en curso. */
-  --rojo-x: #e04a63;
+  --rojo-x: #e31b23;
   --oro: #f0c93c;
   --marca-verde: #c2e3c6;
   --marca-azul: #c6dcf4;
@@ -33,6 +34,7 @@
 }
 
 :root[data-tema='oscuro'] {
+  color-scheme: dark;
   --papel: #15161b;
   --papel-hondo: #1c1e24;
   --tinta: #e9e8e3;
@@ -46,7 +48,7 @@
 
   --marca-amarillo: #6b5f1f;
   --marca-rosa: #6d3a4d;
-  --rojo-x: #ff8296;
+  --rojo-x: #ff3b47;
   --oro: #e3c355;
   --marca-verde: #33543a;
   --marca-azul: #2c4664;
@@ -72,6 +74,12 @@ body {
   font-size: 14px;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+  /* La pluma escribe en azul: el cursor de texto es tinta de estilográfica. */
+  caret-color: var(--azul);
+}
+
+input[type='checkbox'] {
+  accent-color: var(--azul);
 }
 
 button,
@@ -88,12 +96,51 @@ textarea {
   border-radius: 2px;
 }
 
+/* Seleccionar texto también es tinta sobre papel, no el azul del sistema. */
+::selection {
+  background: var(--azul-tenue);
+  color: var(--tinta);
+}
+
+/* Barras de scroll discretas: un lomo fino color regla sobre el papel. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--regla);
+  border: 3px solid var(--papel);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--tinta-tenue);
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Una sola manera de entrar: la tinta asienta, no salta. La usan las vistas al
+   cambiar de sección, el mes al pasar la hoja y la respuesta al descubrirse. */
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
   }
 }
 
@@ -126,6 +173,12 @@ textarea {
   padding-bottom: 12px;
   color: var(--tinta);
   margin-right: 4px;
+}
+
+/* El punto final de la marca, en tinta azul: la firma más chica de la app. */
+.barra__marca::after {
+  content: '.';
+  color: var(--azul);
 }
 
 .barra__enlaces {
@@ -167,6 +220,7 @@ textarea {
 
 /* El reloj asomado en la barra: recto como el resto de la barra, sin pastilla. */
 .barra__reloj {
+  animation: entrar 240ms cubic-bezier(0.2, 0, 0, 1) both;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -238,6 +292,10 @@ textarea {
   flex-direction: column;
 }
 
+.vista > * {
+  animation: entrar 300ms cubic-bezier(0.2, 0, 0, 1) both;
+}
+
 /* --- Piezas base --------------------------------------------------------- */
 
 .btn {
@@ -254,6 +312,11 @@ textarea {
 .btn:hover {
   border-color: var(--tinta-tenue);
   color: var(--tinta);
+}
+
+/* Apretar se siente: el botón baja medio paso. */
+.btn:active:not(:disabled) {
+  transform: translateY(1px);
 }
 
 .btn--fuerte {
@@ -298,6 +361,7 @@ textarea {
 .campo:focus {
   outline: none;
   border-color: var(--azul);
+  box-shadow: 0 0 0 3px var(--azul-tenue);
 }
 
 .campo::placeholder {
@@ -320,6 +384,17 @@ textarea {
   text-align: center;
   color: var(--tinta-tenue);
   padding: 40px;
+}
+
+/* Eco de la regla del margen: hasta las pantallas vacías llevan la firma. */
+.vacio::before {
+  content: '';
+  display: block;
+  width: 1px;
+  height: 28px;
+  margin: 0 auto 16px;
+  background: var(--marca-rosa);
+  opacity: 0.7;
 }
 
 .vacio h3 {
@@ -353,6 +428,43 @@ textarea {
   border-radius: 2px;
   padding: 1px 5px;
   white-space: nowrap;
+  transition: color var(--paso), border-color var(--paso);
+}
+
+button.tag:hover {
+  color: var(--azul);
+  border-color: var(--azul);
+}
+
+/* Las dos pestañas del índice de Apuntes: micro-rótulos, como las etiquetas. */
+.modos {
+  display: flex;
+  gap: 2px;
+}
+
+.modo {
+  flex: 1;
+  appearance: none;
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 6px 4px 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--tinta-tenue);
+  cursor: pointer;
+  transition: color var(--paso), border-color var(--paso);
+}
+
+.modo:hover {
+  color: var(--tinta);
+}
+
+.modo--puesto {
+  color: var(--tinta);
+  border-bottom-color: var(--azul);
 }
 
 /* --- Dos columnas: índice + hoja ---------------------------------------- */
@@ -493,6 +605,7 @@ textarea {
 
 .titulo-nota::placeholder {
   color: var(--regla);
+  font-style: italic;
 }
 
 .meta-nota {
@@ -566,6 +679,12 @@ textarea {
   height: 20px;
   border-radius: 50%;
   border: 1px solid rgba(22, 24, 29, 0.12);
+  transition: transform var(--paso);
+}
+
+/* El destacador se ofrece: crece un pelo al pasar por encima. */
+.herr--marca:hover {
+  transform: scale(1.15);
 }
 
 .editor {
@@ -747,6 +866,7 @@ textarea {
 
 .reloj__rotulo::placeholder {
   color: var(--regla);
+  font-style: italic;
 }
 
 .reloj__digitos {
@@ -778,10 +898,14 @@ textarea {
   transform: rotate(-90deg);
 }
 
+/* El riel es punteado, como los minutos de una esfera de reloj; la tinta lo
+   va cubriendo con un trazo continuo. */
 .anillo__riel {
   fill: none;
   stroke: var(--regla);
   stroke-width: 2;
+  stroke-dasharray: 1 6;
+  stroke-linecap: round;
 }
 
 .anillo__tinta {
@@ -977,6 +1101,7 @@ textarea {
   border-radius: 3px;
   cursor: pointer;
   text-align: left;
+  transition: border-color var(--paso), background var(--paso);
 }
 
 .preset:hover {
@@ -1002,6 +1127,7 @@ textarea {
 
 /* El aviso de los 40 minutos: lo único con borde rojo en toda la app. */
 .aviso-limite {
+  animation: entrar 240ms cubic-bezier(0.2, 0, 0, 1) both;
   display: flex;
   align-items: center;
   gap: 10px;
@@ -1041,7 +1167,13 @@ textarea {
   text-transform: uppercase;
   color: var(--azul);
   background: var(--azul-tenue);
-  transition: transform 1s ease-in-out;
+  cursor: pointer;
+  transition: transform 1s ease-in-out, box-shadow 1s ease-in-out;
+}
+
+/* Mientras se respira, un halo suave alrededor: aire, no alarma. */
+.respirar__circulo:not([data-fase='quieto']) {
+  box-shadow: 0 0 0 7px var(--azul-tenue);
 }
 
 .respirar__circulo[data-fase='inhala'] {
@@ -1075,19 +1207,35 @@ textarea {
   padding: 40px;
 }
 
+/* La tarjeta de repaso es una ficha de estudio: la línea roja arriba, como las
+   fichas de cartulina de toda la vida — la hermana horizontal de la regla del
+   margen. */
 .carta {
+  animation: entrar 260ms cubic-bezier(0.2, 0, 0, 1) both;
+  position: relative;
   width: min(560px, 100%);
   background: var(--papel);
   border: 1px solid var(--regla);
   border-radius: 4px;
   box-shadow: var(--sombra);
-  padding: 40px 36px;
+  padding: 52px 36px 40px;
   min-height: 240px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   gap: 20px;
   text-align: center;
+}
+
+.carta::before {
+  content: '';
+  position: absolute;
+  top: 30px;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--marca-rosa);
+  opacity: 0.7;
 }
 
 .carta__pregunta {
@@ -1097,6 +1245,7 @@ textarea {
 }
 
 .carta__respuesta {
+  animation: entrar 220ms cubic-bezier(0.2, 0, 0, 1) both;
   border-top: 1px solid var(--regla);
   padding-top: 20px;
   color: var(--tinta-suave);
@@ -1189,12 +1338,14 @@ textarea {
   flex: none;
 }
 
+/* Almanaque de pared: el mes en rojo, como la hoja que se arranca. */
 .cal__mes {
   font-family: var(--serif);
-  font-size: 24px;
+  font-size: 30px;
   font-weight: 400;
   margin: 0;
   text-transform: capitalize;
+  color: var(--alarma);
 }
 
 .cal__anio {
@@ -1209,10 +1360,13 @@ textarea {
   gap: 4px;
 }
 
+/* La franja roja del almanaque: los días de la semana en blanco sobre rojo. */
 .cal__dias {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  border-bottom: 1px solid var(--regla);
+  background: var(--alarma);
+  border-radius: 2px 2px 0 0;
+  margin-bottom: 2px;
   flex: none;
 }
 
@@ -1221,42 +1375,50 @@ textarea {
   font-size: 10px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--tinta-tenue);
-  padding: 0 0 7px 3px;
+  color: var(--papel);
+  padding: 7px 0 7px 6px;
 }
 
+/* Bloques blancos sobre lechada gris, como un almanaque impreso. La cuadrícula
+   entra de nuevo con cada mes: la hoja del almanaque que se pasa. */
 .cal__cuadricula {
+  animation: entrar 260ms cubic-bezier(0.2, 0, 0, 1) both;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   grid-auto-rows: minmax(0, 1fr);
+  gap: 2px;
+  background: var(--regla);
+  border: 2px solid var(--regla);
+  border-top: 0;
+  border-radius: 0 0 2px 2px;
   flex: 1;
   min-height: 0;
 }
 
 .celda {
-  border-right: 1px solid var(--regla-fina);
-  border-bottom: 1px solid var(--regla-fina);
+  border: 0;
   padding: 5px 5px 4px;
   display: flex;
   flex-direction: column;
   gap: 2px;
   overflow: hidden;
-  background: none;
+  background: var(--papel);
   text-align: left;
   cursor: pointer;
   transition: background var(--paso);
 }
 
-.celda:nth-child(7n) {
-  border-right: 0;
-}
-
 .celda:hover {
-  background: var(--regla-fina);
+  background: var(--papel-hondo);
 }
 
+/* Los días del mes vecino: el mismo bloque, en un blanco más gris. */
 .celda--fuera {
-  opacity: 0.34;
+  background: var(--papel-hondo);
+}
+
+.celda--fuera > * {
+  opacity: 0.45;
 }
 
 .celda--elegida {
@@ -1269,7 +1431,7 @@ textarea {
 
 .celda__num {
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 12px;
   color: var(--tinta-suave);
   font-variant-numeric: tabular-nums;
   display: flex;
@@ -1277,14 +1439,26 @@ textarea {
   gap: 4px;
 }
 
-.celda--hoy .celda__num {
+/* Los domingos, en rojo. */
+.celda:nth-child(7n) .celda__num {
+  color: var(--alarma);
+}
+
+/* Hoy: el disco rojo del almanaque. La especificidad triple gana al selector
+   de domingo (nth-child) cuando hoy cae justo en domingo. */
+.celda.celda--hoy .celda__num {
   color: var(--papel);
-  background: var(--tinta);
+  background: var(--alarma);
   border-radius: 50%;
-  width: 19px;
-  height: 19px;
+  width: 21px;
+  height: 21px;
   justify-content: center;
   margin: -2px 0 1px -2px;
+}
+
+/* El corazón del cumpleaños, siempre rojo. */
+.celda--cumple .celda__num span {
+  color: var(--alarma);
 }
 
 .celda--cumple {
@@ -1379,6 +1553,21 @@ textarea {
   align-items: center;
   padding: 11px 4px;
   border-bottom: 1px solid var(--regla-fina);
+  transition: background var(--paso);
+}
+
+.evento:hover {
+  background: var(--regla-fina);
+}
+
+/* Lo que ya pasó queda tachado, como en una lista de pendientes. */
+.evento--pasado {
+  opacity: 0.55;
+}
+
+.evento--pasado .evento__nombre {
+  text-decoration: line-through;
+  text-decoration-color: var(--tinta-tenue);
 }
 
 .evento__cuando {
@@ -1530,6 +1719,10 @@ textarea {
   .panel {
     display: none;
   }
+
+  .formulario {
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 /* --- Malla ---------------------------------------------------------------- */
@@ -1552,8 +1745,8 @@ textarea {
 
 .malla__titulo {
   font-family: var(--serif);
-  font-size: 26px;
-  font-weight: 500;
+  font-size: 24px;
+  font-weight: 400;
   margin: 0;
 }
 
@@ -1595,26 +1788,45 @@ textarea {
   align-items: start;
 }
 
+/* Los años como títulos de capítulo, no como cajas: serif cursiva sobre una
+   regla fina que abarca sus dos semestres. */
 .malla__anio {
   grid-column: span 2;
-  border: 1px solid var(--regla);
+  border-bottom: 1px solid var(--regla);
   text-align: center;
-  padding: 12px 4px;
+  padding: 6px 4px 10px;
   font-family: var(--serif);
-  font-size: 15px;
-  letter-spacing: 0.04em;
+  font-style: italic;
+  font-size: 16px;
+  letter-spacing: 0.02em;
   color: var(--azul);
 }
 
 .malla__sem {
-  border: 1px solid var(--regla);
   text-align: center;
-  padding: 4px 2px;
+  padding: 8px 2px 4px;
   font-family: var(--mono);
   font-size: 9px;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--tinta-suave);
+  color: var(--tinta-tenue);
+}
+
+/* El avance de la carrera: una línea de tinta que se va llenando. */
+.malla__progreso {
+  width: 150px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--regla);
+  overflow: hidden;
+  align-self: center;
+}
+
+.malla__progreso-tinta {
+  height: 100%;
+  border-radius: 2px;
+  background: var(--azul);
+  transition: width 400ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .malla__columna {
@@ -1623,6 +1835,9 @@ textarea {
   gap: 6px;
 }
 
+/* Cada ramo es un bloque del folleto impreso: papel con su borde fino. Los
+   estados son las marcas que ella deja encima — el destacador amarillo del que
+   está cursando, la X de lápiz rojo del que ya aprobó. */
 .bloque {
   position: relative;
   min-height: 46px;
@@ -1630,20 +1845,27 @@ textarea {
   align-items: center;
   justify-content: center;
   padding: 7px 6px;
-  border: 0;
+  border: 1px solid var(--regla);
   border-radius: 2px;
-  background: var(--azul);
-  color: var(--papel);
+  background: var(--papel);
+  color: var(--tinta-suave);
   font-family: var(--sans);
   font-size: 10.5px;
   line-height: 1.25;
   text-align: center;
   cursor: pointer;
+  transition: border-color var(--paso), color var(--paso), background var(--paso);
+}
+
+.bloque:hover {
+  border-color: var(--tinta-tenue);
+  color: var(--tinta);
 }
 
 /* La X roja: dos trazos cruzados encima, el nombre se apaga detrás. */
 .bloque--x {
-  opacity: 0.82;
+  background: var(--papel-hondo);
+  color: var(--tinta-tenue);
 }
 
 .bloque--x::before,
@@ -1659,33 +1881,57 @@ textarea {
   pointer-events: none;
 }
 
+/* Los dos trazos crecen desde el punto de cruce: primero uno, después el otro.
+   El pivote queda al centro — con origen a la izquierda la X se abría en "<". */
 .bloque--x::before {
-  transform: rotate(24deg);
+  animation: trazo-ida 160ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 
 .bloque--x::after {
-  transform: rotate(-24deg);
+  animation: trazo-vuelta 160ms 110ms cubic-bezier(0.2, 0, 0, 1) both;
 }
 
-/* El ramo en curso: borde de oro que palpita. */
+@keyframes trazo-ida {
+  from {
+    transform: rotate(24deg) scaleX(0);
+  }
+  to {
+    transform: rotate(24deg) scaleX(1);
+  }
+}
+
+@keyframes trazo-vuelta {
+  from {
+    transform: rotate(-24deg) scaleX(0);
+  }
+  to {
+    transform: rotate(-24deg) scaleX(1);
+  }
+}
+
+/* El ramo en curso: la pasada de destacador amarillo, con un brillo que
+   respira despacio. El gradiente deja las puntas sin pintar, como una pasada
+   de plumón de verdad. */
 .bloque--brillo {
-  box-shadow:
-    0 0 0 2px var(--oro),
-    0 0 10px 1px var(--oro);
-  animation: palpitar 1.8s ease-in-out infinite;
+  background: linear-gradient(
+    100deg,
+    transparent 0%,
+    var(--marca-amarillo) 4%,
+    var(--marca-amarillo) 97%,
+    transparent 100%
+  );
+  border-color: var(--oro);
+  color: var(--tinta);
+  animation: palpitar 2.4s ease-in-out infinite;
 }
 
 @keyframes palpitar {
   0%,
   100% {
-    box-shadow:
-      0 0 0 2px var(--oro),
-      0 0 8px 0 var(--oro);
+    box-shadow: 0 0 4px 0 var(--oro);
   }
   50% {
-    box-shadow:
-      0 0 0 2px var(--oro),
-      0 0 18px 4px var(--oro);
+    box-shadow: 0 0 14px 2px var(--oro);
   }
 }
 
@@ -1701,6 +1947,11 @@ textarea {
   padding: 0;
   cursor: default;
   pointer-events: none;
+}
+
+/* En la leyenda la muestra de "cursando" no palpita: es leyenda, no ramo. */
+.bloque--mini.bloque--brillo {
+  animation: none;
 }
 
 .bloque--mini.bloque--x::before,

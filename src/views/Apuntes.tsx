@@ -40,31 +40,29 @@ export default function Apuntes() {
 
 /**
  * Sin botón "apuntes": la sección ya se llama así en la barra de arriba y decirlo
- * dos veces sobra. Los apuntes son lo que se ve al entrar, y citas y repaso son
- * interruptores — el que está encendido, apretado de nuevo, devuelve al editor.
+ * dos veces sobra. Los apuntes son lo que se ve al entrar, y las dos pestañas son
+ * interruptores — la que está encendida, apretada de nuevo, devuelve al editor.
+ * "Código" se llama así porque detrás está el buscador de los códigos chilenos.
  */
+const MODOS: { modo: Modo; rotulo: string }[] = [
+  { modo: 'citas', rotulo: 'Código' },
+  { modo: 'repaso', rotulo: 'Repaso' },
+]
+
 function Modos({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void }) {
   return (
-    <div style={{ display: 'flex', gap: 2 }}>
-      {(['citas', 'repaso'] as Modo[]).map((m) => {
-        const puesto = modo === m
+    <div className="modos">
+      {MODOS.map((m) => {
+        const puesto = modo === m.modo
         return (
           <button
-            key={m}
-            className="btn btn--mudo"
+            key={m.modo}
+            className={`modo ${puesto ? 'modo--puesto' : ''}`}
             aria-pressed={puesto}
-            title={puesto ? 'Volver a los apuntes' : `Ir a ${m}`}
-            onClick={() => setModo(puesto ? 'apuntes' : m)}
-            style={{
-              flex: 1,
-              fontSize: 12,
-              textTransform: 'capitalize',
-              color: puesto ? 'var(--tinta)' : 'var(--tinta-tenue)',
-              borderBottom: puesto ? '2px solid var(--azul)' : '2px solid transparent',
-              borderRadius: 0,
-            }}
+            title={puesto ? 'Volver a los apuntes' : `Ir a ${m.rotulo}`}
+            onClick={() => setModo(puesto ? 'apuntes' : m.modo)}
           >
-            {m}
+            {m.rotulo}
           </button>
         )
       })}
@@ -906,7 +904,7 @@ function VistaRepaso({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void
               {ramo(carta.ramoId)?.nombre ?? 'Sin ramo'} · {posicion + 1} de {tanda?.length}
             </div>
 
-            <div className="carta">
+            <div className="carta" key={carta.id}>
               <div className="carta__pregunta">{carta.pregunta}</div>
               {descubierta && (
                 <div className="carta__respuesta">
