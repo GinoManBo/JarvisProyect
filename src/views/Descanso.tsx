@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useDatos } from '../lib/datos'
 import { AVISO_LIMITE, ROTULO, reloj, useReloj } from '../lib/reloj'
+import { Monitos, animoDe } from './Monitos'
 import type { Ajustes } from '../lib/types'
 
 type Pomodoro = Ajustes['pomodoro']
@@ -48,6 +49,9 @@ export default function Descanso() {
   const RADIO = 126
   const VUELTA = 2 * Math.PI * RADIO
   const avance = total ? (total - restante) / total : 0
+
+  // Los monitos siguen al reloj: duermen parado, estudian en foco, juegan en pausa.
+  const animo = animoDe(fase, corriendo)
 
   const cambiarCfg = (cambio: Partial<Pomodoro>) =>
     setAjustes((a) => ({ ...a, pomodoro: { ...a.pomodoro, ...cambio } }))
@@ -138,6 +142,8 @@ export default function Descanso() {
             </>
           )}
         </div>
+
+        <Monitos animo={animo} />
       </div>
 
       <aside className="panel">
