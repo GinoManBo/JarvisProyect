@@ -44,7 +44,7 @@ export default function Malla() {
           aria-label={`${avance}% de la carrera aprobado`}
           title={`${avance}% de la carrera`}
         >
-          <div className="malla__progreso-tinta" style={{ width: `${avance}%` }} />
+          <div className="malla__progreso-tinta" style={{ transform: `scaleX(${avance / 100})` }} />
         </div>
         <div className="malla__leyenda">
           {LEYENDA.map(({ estado, texto }) => (

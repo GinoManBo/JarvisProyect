@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Demo personajes: anterior vs. nuevo</title>
+<style>
+  body{margin:0;padding:20px 24px 48px;background:var(--papel);color:var(--tinta);}
+  :root{ --fondo-demo: transparent; }
+  h1{font:600 20px var(--serif, serif);margin:0 0 4px}
+  p.nota{font:12px/1.4 var(--mono, monospace);color:var(--tinta-suave);max-width:70ch;margin:0 0 14px}
+  .barra{display:flex;flex-wrap:wrap;gap:8px 18px;align-items:center;margin:0 0 18px;font:12px var(--mono, monospace)}
+  .barra label{display:flex;gap:6px;align-items:center}
+  .barra button,.barra select{font:inherit;padding:3px 8px}
+  h2{font:600 11px var(--mono, monospace);letter-spacing:.08em;text-transform:uppercase;margin:22px 0 8px;color:var(--tinta-suave)}
+  .hilera{display:flex;flex-wrap:wrap;gap:14px}
+  .ficha{border:1px solid var(--borde, #ccc);padding:8px 10px 6px;background:var(--fondo-demo);}
+  .ficha small{display:block;font:10px var(--mono, monospace);color:var(--tinta-suave);margin-top:6px;white-space:pre}
+  .ficha.cuadros{background:conic-gradient(#ddd 25%,#fff 0 50%,#ddd 0 75%,#fff 0) 0 0/16px 16px}
+  .ficha.oscuro{background:#15171c}
+  .viejo .mono{position:relative !important;left:auto !important;bottom:auto !important;top:auto !important;display:block;height:auto !important}
+  .viejo .mono__fig{width:100%}
+  .linea-suelo{position:relative}
+  .linea-suelo::after{content:"";position:absolute;left:0;right:0;top:var(--suelo);border-top:1px solid #0bf;opacity:.0;pointer-events:none}
+  .guia-suelo .linea-suelo::after{opacity:.7}
+</style></head><body>
+<div id="raiz"></div>
+<script type="module" src="/src/personajes/demo.tsx"></script>
+</body></html>

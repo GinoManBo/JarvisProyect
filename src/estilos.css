@@ -907,6 +907,7 @@ button.tag:hover {
 
 .reloj__centro {
   position: relative;
+  isolation: isolate; /* la pradera (z-index -1) queda detrás del reloj, pero encima de este fondo */
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1018,677 +1019,584 @@ button.tag:hover {
   color: var(--tinta-tenue);
 }
 
+/* --- Descanso: la pradera 8 bit ------------------------------------------- */
+/* Un <canvas> de baja resolución (ver Pradera.tsx) pegado abajo-izquierda y
+   escalado sin suavizar: cada píxel del fondo es un cuadrado duro de 4px.
+   Va antes que .mono en el DOM, así queda detrás sin necesitar z-index. Su
+   paleta es arte pixelado (como los PNG de los monitos), no tokens. */
+
+.pradera {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.pradera__lienzo {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  image-rendering: pixelated;
+}
+
 /* --- Descanso: los monitos ------------------------------------------------ */
-/* Cinco animalitos paseando por la pantalla del pomodoro, con dos pieles que
-   rotan cada 15 minutos: "tinta" (pluma + destacador, MonitosTinta) y "pixel"
-   (sprites, MonitosPixel). Tres capas de movimiento: .mono pasea (left, ida y
-   vuelta con --desde/--hasta/--dur), .mono__voltea gira el dibujo al emprender
-   la vuelta, y el svg hace la gracia de cada uno. Duermen congelados donde los
-   pilló el reloj parado, acompañan en foco y se aceleran en la pausa. */
+/* Siete animalitos "útiles del escritorio" que acompañan el pomodoro. Tres
+   pieles rotan cada 15 minutos fuera de foco: pluma (contorno abierto),
+   plumón (macizo con contorno grueso) y timbre (masa de goma calada); todas
+   comparten la geometría, así que el carril y la pose no cambian al rotar.
+
+   DOM:  .mono (carril) > .mono__paseo (patrulla) > .mono__voltea (giro y
+   despertar) > [.mono__ola >] svg.mono__fig (la gracia de cada uno).
+
+   Reglas de movimiento: sólo transform y opacity. En foco casi no se mueven
+   (a lo más gatito y Appa), en la pausa patrullan su carril y en la siesta
+   duermen con las zetas. El color sigue al reloj: gris tinta estudiando y
+   durmiendo, azul de pluma en el recreo. */
+
+/* Hacia dónde mira mientras patrulla: lo anima la patrulla y lo heredan los
+   hijos, así el giro siempre cae en la vuelta del carril, nunca a destiempo. */
+@property --dir {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
 
 .mono {
+  --mono-tinta: var(--tinta-suave); /* estudia y siesta */
+  --mono-calado: var(--papel); /* rasgos calados del timbre */
+  --mono-trazo-pluma: 2.4; /* unidades de viewBox */
+  --mono-trazo-plumon: 5.5;
+  --mono-escala: 1; /* 0.85 en ancho <= 1100, 0.72 en <= 980 */
+  --mono-agranda: 1.4; /* sobre la caja base, pero siempre bajo el tope */
+  --mono-suelo: 8px;
+  --mono-ola: 6px; /* Appa: 3px estudiando */
+  --mono-t-despertar: 300ms;
+  --mono-t-reposo: 400ms;
+  --mono-t-brinco: 600ms;
+  --mono-t-fade: 700ms;
+  --mono-t-respira: 5s;
+  --mono-escalon: 80ms;
+  --mira: 1; /* +1 mira a la derecha: los del carril izquierdo miran al centro */
+  --caja-tope: 9999px;
+  --caja-ancho: calc(min(var(--caja-base) * var(--mono-agranda), var(--caja-tope)) * var(--mono-escala));
+
   position: absolute;
-  left: var(--desde);
-  color: var(--azul);
+  bottom: var(--mono-suelo);
+  left: var(--c-ini);
+  width: var(--c-ancho);
+  height: var(--caja-ancho);
+  color: var(--mono-tinta);
   pointer-events: none;
   user-select: none;
-  /* Todos un poco más grandes; crecen desde el piso para no despegarse. */
-  transform: scale(1.3);
-  transform-origin: bottom center;
-  /* --fase negativo: cada uno parte a mitad de camino, repartidos, no en fila. */
-  animation: mono-paseo var(--dur) ease-in-out var(--fase, 0s) infinite alternate;
+  transition: color var(--mono-t-despertar);
 }
 
-/* Appa ya es grande (120px) y vuela arriba: no lo agrandamos más para que no
-   se meta en el reloj. */
-.mono--appa {
-  transform: none;
+.mono[data-animo='recreo'] {
+  --mono-tinta: var(--azul);
 }
 
-.mono__voltea {
-  animation: mono-voltea calc(var(--dur) * 2) linear var(--fase, 0s) infinite;
-}
+/* --- Cada animal: carril, caja, destacador, ritmo y gracia ----------------- */
+/* --c-ini / --c-ancho son % del área del reloj. --dur es un tramo de ida; la
+   patrulla de ida y vuelta dura el doble. --fase reparte a los que están
+   parados en estudia y siesta, para que no queden en fila. */
 
-.mono svg {
-  display: block;
-  overflow: visible;
+.mono--conejito {
+  --mono-marca: var(--marca-rosa);
+  --c-ini: 3%;
+  --c-ancho: 15%;
+  --caja-base: 88px;
+  --mira: 1;
+  --orden: 0;
+  --dur: 12s;
+  --fase: -9s;
+  --gesto: mono-brinquito;
+  --gesto-dur: 0.9s;
+  --salto: 17px;
 }
-
-/* Dormidos: cada uno se queda congelado donde lo pilló la siesta.
-   Las zetas no se pausan — flotan sobre el que duerme. */
-.mono[data-animo='siesta'],
-.mono[data-animo='siesta'] .mono__voltea,
-.mono[data-animo='siesta'] .mono__ola,
-.mono[data-animo='siesta'] .appa__cola,
-.mono[data-animo='siesta'] .conejito__oreja,
-.mono[data-animo='siesta'] .gatito__pata,
-.mono[data-animo='siesta'] .perrito__pata,
-.mono[data-animo='siesta'] svg {
-  animation-play-state: paused;
-}
-
-/* --- Cada animalito: franja, ritmo, color y velocidad de cuadros --------- */
 
 .mono--gatito {
-  --pelaje: var(--marca-amarillo);
-  --desde: 4%;
-  --hasta: calc(86% - 72px);
-  --dur: 90s;
-  --fase: -53s;
-  --cuadros: 0.9s;
-  bottom: 20px;
-  animation-name: mono-paseo-pausado;
+  --mono-marca: var(--marca-amarillo);
+  --c-ini: 19%;
+  --c-ancho: 16%;
+  --caja-base: 76px;
+  --caja-tope: max(0px, calc(50vh - 300px));
+  --mira: 1;
+  --orden: 1;
+  --dur: 20s;
+  --fase: -26s;
+  --gesto: mono-tranco;
+  --gesto-dur: 0.7s;
 }
 
-.mono--gatito svg {
-  animation: mono-tranco 0.9s ease-in-out infinite;
+.mono--cuy {
+  --mono-marca: var(--marca-rosa);
+  --c-ini: 36%;
+  --c-ancho: 11%;
+  --caja-base: 68px;
+  --caja-tope: max(0px, calc(50vh - 300px));
+  --mira: 1;
+  --orden: 2;
+  --dur: 14s;
+  --fase: -11s;
+  --gesto: mono-brinquito;
+  --gesto-dur: 0.7s;
+  --salto: 9px;
 }
 
-.mono--gatito[data-animo='recreo'] {
-  --cuadros: 0.55s;
-}
-
-.mono--gatito[data-animo='recreo'] svg {
-  animation-duration: 0.55s;
+.mono--caracol {
+  --mono-marca: var(--marca-verde);
+  --c-ini: 48%;
+  --c-ancho: 10%;
+  --caja-base: 64px;
+  --caja-tope: max(0px, calc(50vh - 300px));
+  --mira: -1;
+  --orden: 3;
+  --dur: 60s;
+  --fase: -40s;
+  --gesto: mono-arrastra;
+  --gesto-dur: 2.4s;
 }
 
 .mono--perrito {
-  --pelaje: var(--marca-amarillo);
-  --desde: 10%;
-  --hasta: calc(84% - 72px);
-  --dur: 44s;
-  --fase: -24s;
-  --cuadros: 0.8s;
-  bottom: 30px;
-  animation-name: mono-paseo-pausado;
-}
-
-.mono--perrito svg {
-  animation: mono-tranco 0.8s ease-in-out infinite;
-}
-
-.mono--perrito[data-animo='recreo'] {
-  --cuadros: 0.5s;
-}
-
-.mono--perrito[data-animo='recreo'] svg {
-  animation-duration: 0.5s;
-}
-
-.mono--conejito {
-  --pelaje: var(--marca-rosa);
-  --desde: 8%;
-  --hasta: calc(92% - 56px);
-  --dur: 34s;
-  --fase: -13s;
-  --cuadros: 1.15s;
-  bottom: 46px;
-  animation-name: mono-paseo-pausado;
-}
-
-.mono--conejito svg {
-  transform-origin: 50% 100%;
-  animation: mono-brinquito 1.15s ease-in-out infinite;
-}
-
-.mono--conejito[data-animo='recreo'] {
-  --cuadros: 0.75s;
-}
-
-.mono--conejito[data-animo='recreo'] svg {
-  animation-duration: 0.75s;
-}
-
-/* El cuadro B (orejas atrás) cae justo cuando va por el aire. */
-.mono--conejito .mono__cuadroA,
-.mono--conejito .mono__cuadroB {
-  animation-delay: calc(var(--cuadros) * -0.35);
+  --mono-marca: var(--marca-amarillo);
+  --c-ini: 59%;
+  --c-ancho: 16%;
+  --caja-base: 76px;
+  --caja-tope: max(0px, calc(50vh - 300px));
+  --mira: -1;
+  --orden: 4;
+  --dur: 16s;
+  --fase: -21s;
+  --gesto: mono-tranco;
+  --gesto-dur: 0.65s;
 }
 
 .mono--ranita {
-  --pelaje: var(--marca-verde);
-  --desde: 12%;
-  --hasta: calc(88% - 64px);
-  --dur: 56s;
-  --fase: -37s;
-  --cuadros: 2.2s;
-  bottom: 33px;
-  animation-name: mono-paseo-pausado;
+  --mono-marca: var(--marca-verde);
+  --c-ini: 77%;
+  --c-ancho: 15%;
+  --caja-base: 76px;
+  --mira: -1;
+  --orden: 5;
+  --dur: 18s;
+  --fase: -14s;
+  --gesto: mono-pirueta;
+  --gesto-dur: 4s;
 }
 
-.mono--ranita svg {
-  transform-origin: 50% 100%;
-  animation: mono-pirueta 5.5s ease-in-out infinite;
-}
-
-.mono--ranita[data-animo='recreo'] svg {
-  animation-duration: 3s;
-}
-
-/* Cruza el pie de la página en unos ocho minutos; a la vuelta, en reversa. */
-.mono--caracol {
-  --pelaje: var(--marca-rosa);
-  --desde: 3%;
-  --hasta: calc(95% - 60px);
-  --dur: 480s;
-  --fase: -310s;
-  --cuadros: 1.6s;
-  bottom: 6px;
-  animation-timing-function: linear;
-}
-
-/* El cuy es chico y bajito: camina meciéndose y en la pausa da saltitos
-   (popcorning) como los cuyes de verdad cuando están contentos. */
-.mono--cuy {
-  --pelaje: var(--marca-amarillo);
-  --desde: 14%;
-  --hasta: calc(80% - 48px);
-  --dur: 38s;
-  --fase: -9s;
-  --cuadros: 0.7s;
-  bottom: 14px;
-  animation-name: mono-paseo-pausado;
-}
-
-.mono--cuy svg {
-  transform-origin: 50% 100%;
-  animation: mono-tranco 0.7s ease-in-out infinite;
-}
-
-.mono--cuy[data-animo='recreo'] svg {
-  animation: mono-brinquito 0.7s ease-in-out infinite;
-}
-
-/* Appa vuela: pasea arriba, la ola le da la subida y bajada, y el cuerpo se
-   inclina con ella — pica al bajar, levanta al subir. */
+/* Appa vuela arriba, de lado a lado, y no tiene carril de suelo. */
 .mono--appa {
-  --pelaje: var(--marca-azul);
-  --desde: 5%;
-  --hasta: calc(90% - 120px);
-  --dur: 52s;
-  --fase: -21s;
-  --cuadros: 0.5s;
-  top: 6px;
+  --mono-marca: var(--marca-azul);
+  --c-ini: 2%;
+  --c-ancho: 96%;
+  --caja-base: 96px;
+  --caja-tope: max(0px, calc((50vh - 332px) * 1.875));
+  --mira: 1;
+  --orden: 6;
+  --dur: 40s;
+  --fase: -17s;
+  --gesto: mono-planeo;
+  --gesto-dur: 2.4s;
+  --gesto-dir: alternate;
+  top: 10px; /* el planeo inclina la caja: deja margen bajo la barra */
+  bottom: auto;
+  height: calc(var(--caja-ancho) * 64 / 120);
 }
 
+.mono[data-animo='estudia'].mono--appa {
+  --mono-ola: 3px;
+}
+
+/* --- Las tres capas ------------------------------------------------------- */
+
+/* La patrulla: sólo en recreo corre; fuera de él queda congelada donde esté
+   (es posición, no gesto). El margen de 0,09 de caja a cada lado deja sitio
+   al squash de los brincos. */
+.mono__paseo {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  --x0: calc(var(--caja-ancho) * 0.09);
+  --x1: calc(100% - var(--caja-ancho) * 1.09);
+  transform: translateX(var(--x0));
+  animation: mono-patrulla calc(var(--dur) * 2) ease-in-out var(--fase) infinite paused;
+}
+
+.mono--appa .mono__paseo {
+  bottom: auto;
+  top: 0;
+}
+
+.mono[data-animo='recreo'] .mono__paseo {
+  animation-play-state: running;
+  will-change: transform;
+}
+
+/* El giro y el despertar. La figura se dibuja mirando a +x; --mira la voltea
+   al reposo, y en recreo manda --dir (hacia dónde va). La llave de React rehace
+   este nodo en cada cambio de ánimo o de piel, así el despertar y el fundido
+   parten limpios y el giro nunca queda a medias. */
+.mono__voltea {
+  width: var(--caja-ancho);
+  transform: scaleX(var(--mira));
+  transition: transform var(--mono-t-reposo) ease-in-out;
+  animation: mono-despierta var(--mono-t-despertar) ease-out
+    calc(var(--orden) * var(--mono-escalon)) backwards;
+}
+
+.mono[data-animo='recreo'] .mono__voltea {
+  transform: scaleX(var(--dir));
+}
+
+/* Cambio de piel: el mismo despertar, más largo — un fundido, sin trazo ni brillo. */
+.mono[data-rota] .mono__voltea {
+  animation-duration: var(--mono-t-fade);
+}
+
+.mono__fig {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+  transform-origin: 50% 100%;
+}
+
+/* Monito de hojas PNG (gatito pixel): los cuadros ya traen respiración, paso y
+   siesta, así que no lleva los gestos CSS de las pieles. Caja cuadrada, porque
+   el reproductor escala la celda a un lado. La patrulla y el volteo siguen. */
+/* El pixel sólo escala a múltiplos enteros de 64: con 76px quedaba en 64 (el
+   dibujo, ~40px). 128 da ×2 en pantalla normal y ×4 en retina; el reproductor
+   redondea hacia abajo, así que la caja es el techo, no el tamaño. */
+.mono:has(.mono__fig--sprite) {
+  --caja-base: 128px;
+  --mono-agranda: 1;
+}
+
+.mono__fig--sprite,
+.mono[data-animo] .mono__fig--sprite {
+  aspect-ratio: 1;
+  animation: none;
+}
+
+/* Appa respira con la ola: casi nada en foco, un planeo suave en el recreo. */
 .mono__ola {
-  animation: mono-ola 3.8s ease-in-out infinite alternate;
+  animation: mono-ola 6s ease-in-out infinite alternate;
 }
 
-.mono--appa svg {
-  animation: mono-planeo 3.8s ease-in-out infinite alternate;
-}
-
-.mono--appa[data-animo='recreo'] {
-  --cuadros: 0.32s;
-}
-
-.mono--appa[data-animo='recreo'] .mono__ola,
-.mono--appa[data-animo='recreo'] svg {
+.mono[data-animo='recreo'] .mono__ola {
   animation-duration: 2.4s;
 }
 
-/* --- Piel tinta: trazo de pluma + relleno destacador ---------------------- */
-
-.mono path,
-.mono circle,
-.mono ellipse,
-.mono line {
-  fill: none;
-  stroke: currentColor;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-}
-
-.mono .mono__cuerpo {
-  fill: var(--papel);
-}
-
-.mono .mono__pelaje {
-  fill: var(--pelaje, var(--papel));
-}
-
-.mono .mono__relleno {
-  fill: currentColor;
-  stroke: none;
-}
-
-/* Chapitas de rubor: el toque de cariño. */
-.mono .mono__rubor {
-  fill: var(--marca-rosa);
-  stroke: none;
-  opacity: 0.65;
-}
-
-/* Lengüita del perrito cuando juega. */
-.mono .mono__lengua {
-  fill: var(--marca-rosa);
-  stroke: currentColor;
-  stroke-width: 1.5;
-}
-
-/* Loza de los props tinta: tacitas y almohadillas con su contorno de pluma. */
-.mono .mono__loza {
-  fill: var(--papel);
-  stroke: currentColor;
-  stroke-width: 2;
-}
-
-.mono text {
-  fill: currentColor;
-  stroke: none;
-  font-family: var(--mono);
-}
-
-/* Patitas cortas que caminan de verdad, una en contratiempo de la otra. */
-.gatito__pata {
-  stroke-width: 4.5;
-  transform-box: fill-box;
-  transform-origin: 50% 0;
-  animation: mono-pata 0.9s ease-in-out infinite;
-}
-
-.gatito__pata--otra {
-  animation-delay: -0.45s;
-}
-
-.mono--gatito[data-animo='recreo'] .gatito__pata {
-  animation-duration: 0.55s;
-}
-
-.gatito__cola {
-  transform-origin: 12px 34px;
-  animation: mono-cola 4s ease-in-out infinite;
-}
-
-[data-animo='recreo'] .gatito__cola {
-  animation-duration: 1.6s;
-}
-
-[data-animo='siesta'] .gatito__cola {
+.mono[data-animo='siesta'] .mono__ola {
   animation: none;
 }
 
-.gatito__ojo {
+/* En foco sólo respira el gatito (y Appa con su ola): el tope es de dos. */
+.mono--gatito[data-animo='estudia'] .mono__fig {
+  animation: mono-respira var(--mono-t-respira) ease-in-out infinite;
+}
+
+/* Recreo: un brinquito único al salir de foco y después la gracia de cada uno. */
+.mono[data-animo='recreo'] .mono__fig {
+  will-change: transform;
+  animation:
+    mono-brinco-unico var(--mono-t-brinco) ease-out calc(var(--orden) * var(--mono-escalon)) 1
+      backwards,
+    var(--gesto) var(--gesto-dur) ease-in-out
+      calc(var(--mono-t-brinco) + var(--orden) * var(--mono-escalon)) infinite
+      var(--gesto-dir, normal);
+}
+
+/* Appa vuela: no brinca, sólo planea. */
+.mono--appa[data-animo='recreo'] .mono__fig {
+  animation: mono-planeo var(--gesto-dur) ease-in-out infinite alternate;
+}
+
+/* --- Gestos sueltos: orejas, cola, patas, cuernos (sólo en recreo) ---------- */
+
+.mono__oreja,
+.mono__cola,
+.mono__pata,
+.mono__cuerno {
   transform-box: fill-box;
-  transform-origin: center;
-  animation: mono-parpadeo 5s infinite;
 }
 
-/* Patitas y cola del perrito: camina como el gato, la cola mueve más rápido. */
-.perrito__pata {
-  stroke-width: 4.5;
-  transform-box: fill-box;
-  transform-origin: 50% 0;
-  animation: mono-pata 0.8s ease-in-out infinite;
-}
-
-.perrito__pata--otra {
-  animation-delay: -0.4s;
-}
-
-.mono--perrito[data-animo='recreo'] .perrito__pata {
-  animation-duration: 0.5s;
-}
-
-.perrito__cola {
-  transform-box: fill-box;
-  transform-origin: 0% 100%;
-  animation: mono-cola 1.1s ease-in-out infinite;
-}
-
-[data-animo='recreo'] .perrito__cola {
-  animation-duration: 0.5s;
-}
-
-[data-animo='siesta'] .perrito__cola {
-  animation: none;
-}
-
-/* Orejas sueltas: flopean con el brinco, cada una a su tiempo. */
-.conejito__oreja {
-  transform-box: fill-box;
+.mono[data-animo='recreo'] .mono__oreja {
   transform-origin: 50% 100%;
-  animation: mono-oreja 1.15s ease-in-out infinite;
+  animation: mono-oreja 0.9s ease-in-out infinite;
 }
 
-.conejito__oreja--otra {
+.mono[data-animo='recreo'] .mono__oreja--otra {
   animation-delay: 0.12s;
 }
 
-/* La cola-timón de Appa mece suave mientras planea. */
-.appa__cola {
-  transform-box: fill-box;
+.mono--perrito[data-animo='recreo'] .mono__oreja,
+.mono--cuy[data-animo='recreo'] .mono__oreja {
+  transform-origin: 50% 0%;
+}
+
+.mono[data-animo='recreo'] .mono__cola {
+  transform-origin: 100% 100%;
+  animation: mono-cola 0.8s ease-in-out infinite;
+}
+
+.mono--appa[data-animo='recreo'] .mono__cola {
   transform-origin: 100% 50%;
-  animation: mono-timon 2.4s ease-in-out infinite alternate;
+  animation: mono-timon 1.3s ease-in-out infinite alternate;
 }
 
-[data-animo='recreo'] .appa__cola {
-  animation-duration: 1.3s;
+.mono--gatito[data-animo='recreo'] .mono__pata,
+.mono--perrito[data-animo='recreo'] .mono__pata {
+  transform-origin: 50% 0%;
+  animation: mono-pata 0.65s ease-in-out infinite;
 }
 
-[data-animo='siesta'] .appa__cola {
-  animation: none;
+.mono--gatito[data-animo='recreo'] .mono__pata--otra,
+.mono--perrito[data-animo='recreo'] .mono__pata--otra {
+  animation-delay: -0.325s;
 }
 
-@keyframes mono-timon {
-  from {
-    transform: rotate(-7deg);
-  }
-  to {
-    transform: rotate(7deg);
-  }
+.mono[data-animo='recreo'] .mono__cuerno {
+  transform-origin: 50% 100%;
+  animation: mono-cuerno 1.6s ease-in-out infinite alternate;
 }
 
-/* --- Colores suaves compartidos ------------------------------------------ */
-/* Crema, menta, cielo y rubor; nada chillón. La piel tinta hereda el confeti. */
-
-.mono {
-  --fig-crema: #f7ead6;
-  --fig-menta: #b7dfc9;
-  --fig-cielo: #b9d7ee;
-  --fig-chapa: #f2aebc;
+.mono[data-animo='recreo'] .mono__cuerno--otro {
+  animation-delay: -0.8s;
 }
 
-:root[data-tema='oscuro'] .mono {
-  --fig-crema: #857459;
-  --fig-menta: #40685a;
-  --fig-cielo: #40628a;
-  --fig-chapa: #9d5568;
-}
+/* --- Pieles --------------------------------------------------------------- */
+/* Cada piel pone el trazo y el relleno de las mismas clases semánticas:
+   .mono__macizo (el cuerpo), __trazo (líneas), __calado (detalle), __marca
+   (destacador), __ojo, __parpadeo, __taza, __z. */
 
-.mono .kw__menta {
-  fill: var(--fig-menta);
-}
-
-.mono .kw__cielo {
-  fill: var(--fig-cielo);
-}
-
-.mono .kw__chapita {
-  fill: var(--fig-chapa);
-}
-
-/* --- Pieles de superficie: geometría chibi compartida (MonitosFigura) ----- */
-/* Un solo dibujo por animalito; cada tema lo viste distinto por CSS. Reset de
-   trazo (la piel tinta pinta contornos globalmente y acá no los queremos) y
-   los rellenos por clase. */
-
-.mono__figura path,
-.mono__figura circle,
-.mono__figura ellipse,
-.mono__figura rect,
-.mono__figura line {
-  stroke: none;
-}
-
-.mono .figura__piel {
-  fill: var(--pelaje);
-}
-
-.mono .figura__crema {
-  fill: var(--fig-crema);
-}
-
-/* Contorno blanco tipo sticker en todos los temas de figura (el neón lo pisa
-   con su glow más abajo). */
-.mono__figura .figura__piel,
-.mono__figura .figura__crema,
-.mono__figura .figura__acento,
-.mono__figura .figura__cuerpo {
-  stroke: var(--papel);
-  stroke-width: 2.6;
-  paint-order: stroke;
-}
-
-.mono .figura__cuerpo {
-  fill: var(--papel);
-}
-
-.mono .figura__ojo {
-  fill: var(--tinta);
-}
-
-.mono .figura__luz {
-  fill: var(--papel);
-}
-
-.mono .figura__chapa {
-  fill: var(--fig-chapa);
-}
-
-.mono .figura__acento {
-  fill: var(--pelaje);
-}
-
-.mono .figura__rasgo {
+/* Pluma: contorno abierto de tinta, sin relleno. El destacador sólo aparece
+   en el recreo, corrido un pelo hacia atrás — nunca como borde exterior. */
+.mono__fig--pluma {
   fill: none;
-  stroke: var(--tinta);
-  stroke-width: 2.2;
+  stroke: currentColor;
+  stroke-width: var(--mono-trazo-pluma);
   stroke-linecap: round;
   stroke-linejoin: round;
 }
 
-.mono .figura__vapor {
-  fill: none;
-  stroke: var(--tinta-tenue);
+.mono__fig--pluma .mono__calado {
+  stroke-width: 1.4;
+}
+
+.mono__fig--pluma .mono__marca {
+  fill: var(--mono-marca);
+  stroke: none;
+  opacity: 0;
+  transform: translate(-1.5px, 1.5px);
+}
+
+.mono[data-animo='recreo'] .mono__fig--pluma .mono__marca {
+  opacity: 1;
+}
+
+.mono__fig--pluma .mono__ojo {
+  fill: currentColor;
+  stroke: none;
+}
+
+.mono__fig--pluma .mono__parpadeo {
   stroke-width: 2;
+}
+
+.mono__fig--pluma .mono__taza {
+  fill: var(--papel);
+}
+
+.mono__fig--pluma .mono__vapor {
+  stroke-width: 1.4;
+}
+
+.mono__fig--pluma .mono__lengua {
+  fill: var(--marca-rosa);
+  stroke-width: 1.6;
+}
+
+/* Plumón: marcador grueso. Contorno cerrado de 5,5u y relleno de papel; en el
+   recreo el destacador rellena el cuerpo por dentro (el contorno sigue siendo
+   tinta). Las líneas finas del rostro van más delgadas que el contorno. */
+.mono__fig--plumon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: var(--mono-trazo-plumon);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.mono__fig--plumon .mono__macizo,
+.mono__fig--plumon .mono__taza {
+  fill: var(--papel);
+}
+
+.mono[data-animo='recreo'] .mono__fig--plumon .mono__macizo {
+  fill: var(--mono-marca);
+}
+
+.mono__fig--plumon .mono__calado,
+.mono__fig--plumon .mono__parpadeo {
+  stroke-width: 2.6;
+}
+
+.mono__fig--plumon .mono__taza {
+  stroke-width: 3.4;
+}
+
+.mono__fig--plumon .mono__ojo {
+  fill: currentColor;
+  stroke: none;
+}
+
+.mono__fig--plumon .mono__lengua {
+  fill: var(--marca-rosa);
+  stroke-width: 2.4;
+}
+
+.mono__fig--plumon .mono__marca {
+  display: none;
+}
+
+/* Timbre: sello de goma. Masa sólida de tinta sin contorno; los rasgos (ojos,
+   boca, pezuñas, la flecha de Appa) y las muescas de goma gastada van calados
+   en el color del papel. */
+.mono__fig--timbre {
+  fill: currentColor;
+  stroke: none;
+}
+
+.mono__fig--timbre .mono__trazo,
+.mono__fig--timbre .mono__marca {
+  display: none;
+}
+
+.mono__fig--timbre .mono__calado,
+.mono__fig--timbre .mono__muesca,
+.mono__fig--timbre .mono__ojo {
+  fill: var(--mono-calado);
+}
+
+.mono__fig--timbre .mono__lengua {
+  fill: var(--mono-calado);
+}
+
+.mono__fig--timbre .mono__parpadeo {
+  fill: none;
+  stroke: var(--mono-calado);
+  stroke-width: 2.2;
   stroke-linecap: round;
 }
 
-.mono .figura__conf--1 {
-  fill: var(--fig-menta);
+.mono__fig--timbre .mono__taza {
+  fill: currentColor;
 }
 
-.mono .figura__conf--2 {
-  fill: var(--fig-cielo);
-}
-
-.mono .figura__conf--3 {
-  fill: var(--marca-amarillo);
-}
-
-/* Reflejo de plastilina: oculto salvo en ese tema. */
-.mono .figura__brillo {
-  fill: #ffffff;
-  opacity: 0;
-}
-
-/* --- Tema acuarela: aguadas difusas, translúcidas, sin contorno ----------- */
-.mono__acuarela {
-  filter: blur(0.4px) saturate(1.12);
-}
-
-.mono__acuarela .figura__piel,
-.mono__acuarela .figura__crema,
-.mono__acuarela .figura__acento {
-  opacity: 0.88;
-}
-
-.mono__acuarela .figura__chapa {
-  opacity: 0.7;
-}
-
-.mono__acuarela .figura__rasgo {
-  stroke-width: 1.8;
-  opacity: 0.55;
-}
-
-/* --- Tema papel recortado: planos con sombra de collage y borde de papel -- */
-.mono__papel {
-  filter: drop-shadow(1.5px 2.5px 0 rgba(35, 35, 60, 0.16));
-}
-
-.mono__papel .figura__piel,
-.mono__papel .figura__crema,
-.mono__papel .figura__acento,
-.mono__papel .figura__cuerpo {
-  stroke: var(--papel);
-  stroke-width: 1.6;
-  paint-order: stroke;
-}
-
-/* --- Tema neón: cuerpos oscuros y contornos que brillan ------------------- */
-/* Pisa el contorno blanco de figura con su glow cyan. */
-.mono__neon .figura__piel,
-.mono__neon .figura__crema,
-.mono__neon .figura__cuerpo {
-  fill: #14162b;
-  stroke: var(--azul-vivo);
-  stroke-width: 1.4;
-}
-
-.mono__neon .figura__acento {
-  stroke: var(--azul-vivo);
-  stroke-width: 1.4;
-}
-
-.mono__neon path,
-.mono__neon circle,
-.mono__neon ellipse {
-  stroke: var(--azul-vivo);
-  stroke-width: 1.4;
-}
-
-.mono__neon {
-  filter: drop-shadow(0 0 3px rgba(53, 181, 255, 0.55));
-}
-
-.mono__neon .figura__ojo {
-  fill: var(--azul-vivo);
+/* Las zetas: la única cosa que se mueve en la siesta. Son las únicas con
+   opacidad menor que 1, así que no dependen de la transparencia. */
+.mono__z {
+  fill: currentColor;
   stroke: none;
+  font-family: var(--serif);
+  font-style: italic;
+  opacity: 0.8;
+  /* El carril voltea el dibujo con scaleX(-1): la zeta se desvoltea sobre sí
+     misma para no leerse como una "s" al revés. */
+  transform-box: fill-box;
+  transform-origin: center;
+  scale: var(--mira) 1;
+  animation: mono-z 3s ease-in-out infinite;
 }
 
-.mono__neon .figura__luz {
-  fill: #eafffb;
-  stroke: none;
+.mono__z--lejos {
+  animation-delay: 1.5s;
 }
 
-.mono__neon .figura__chapa {
-  fill: #ff5db1;
-  stroke: none;
-}
+/* --- Keyframes ------------------------------------------------------------ */
 
-.mono__neon .figura__rasgo,
-.mono__neon .figura__vapor {
-  stroke: var(--azul-vivo);
-}
-
-.mono__neon .figura__acento {
-  fill: #ff5db1;
-  stroke: none;
-}
-
-.mono__neon .figura__conf--1 {
-  fill: #58f5c0;
-}
-
-.mono__neon .figura__conf--2 {
-  fill: var(--azul-vivo);
-}
-
-.mono__neon .figura__conf--3 {
-  fill: #ff5db1;
-}
-
-/* --- Tema plastilina: relleno macizo, sombra suave y brillo 3D ------------ */
-.mono__plastilina {
-  filter: drop-shadow(1px 3px 2px rgba(45, 35, 25, 0.28));
-}
-
-.mono__plastilina .figura__piel,
-.mono__plastilina .figura__crema {
-  stroke: rgba(0, 0, 0, 0.08);
-  stroke-width: 1;
-}
-
-.mono__plastilina .figura__brillo {
-  opacity: 0.45;
-}
-
-/* --- Piel pixel: sprites que alternan dos cuadros con steps() ------------- */
-
-.mono__sprite {
-  shape-rendering: crispedges;
-}
-
-/* Los rects del sprite no llevan el trazo de la piel tinta. */
-.mono .mono__sprite rect {
-  stroke: none;
-}
-
-.mono__cuadroA {
-  animation: mono-cuadro-a var(--cuadros, 0.9s) steps(1) infinite;
-}
-
-.mono__cuadroB {
-  opacity: 0;
-  animation: mono-cuadro-b var(--cuadros, 0.9s) steps(1) infinite;
-}
-
-@keyframes mono-cuadro-a {
+/* Ida y vuelta por el carril con paraditas. Un solo ciclo: la primera mitad
+   va hacia la derecha, la segunda vuelve. --dir cambia a la mitad, justo en
+   la parada del extremo, y el giro lo hace la transición del voltea. */
+@keyframes mono-patrulla {
   0%,
+  5%,
+  95%,
   100% {
-    opacity: 1;
+    transform: translateX(var(--x0));
   }
-  50% {
-    opacity: 0;
+  14%,
+  20%,
+  80%,
+  86% {
+    transform: translateX(calc(var(--x0) + (var(--x1) - var(--x0)) * 0.3));
   }
-}
-
-@keyframes mono-cuadro-b {
+  32%,
+  38%,
+  62%,
+  68% {
+    transform: translateX(calc(var(--x0) + (var(--x1) - var(--x0)) * 0.65));
+  }
+  46%,
+  54% {
+    transform: translateX(var(--x1));
+  }
   0%,
-  100% {
-    opacity: 0;
-  }
-  50% {
-    opacity: 1;
-  }
-}
-
-/* --- El paseo ------------------------------------------------------------- */
-
-@keyframes mono-paseo {
-  from {
-    left: var(--desde);
-  }
-  to {
-    left: var(--hasta);
-  }
-}
-
-/* Caminata con paraditas: avanza, se detiene a mirar, sigue. El ease-in-out
-   por tramo hace que arranque y frene suave, nada de cinta transportadora. */
-@keyframes mono-paseo-pausado {
-  0% {
-    left: var(--desde);
-  }
-  18%,
-  30% {
-    left: calc(var(--desde) + 0.3 * (var(--hasta) - var(--desde)));
-  }
-  55%,
-  65% {
-    left: calc(var(--desde) + 0.65 * (var(--hasta) - var(--desde)));
-  }
-  100% {
-    left: var(--hasta);
-  }
-}
-
-@keyframes mono-voltea {
-  0%,
-  49.9% {
-    transform: scaleX(1);
+  49.99% {
+    --dir: 1;
   }
   50%,
   100% {
-    transform: scaleX(-1);
+    --dir: -1;
   }
 }
 
-/* --- Las gracias del cuerpo ----------------------------------------------- */
+@keyframes mono-despierta {
+  from {
+    opacity: 0;
+    translate: 0 4px;
+  }
+}
+
+/* Brinco con squash: se aplasta al tomar impulso, se estira en el aire y
+   rebota al caer. --salto topa la altura (10px los centrales, 19px los de borde). */
+@keyframes mono-brinquito {
+  0%,
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+  15% {
+    transform: translateY(0) scale(1.1, 0.88);
+  }
+  35% {
+    transform: translateY(calc(var(--salto, 10px) * -1)) scale(0.95, 1.08);
+  }
+  55% {
+    transform: translateY(0) scale(1.08, 0.9);
+  }
+  70% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
+
+/* El primer brinquito al salir de foco: corto, igual para todos. */
+@keyframes mono-brinco-unico {
+  0% {
+    transform: translateY(0) scale(1, 1);
+  }
+  25% {
+    transform: translateY(0) scale(1.1, 0.88);
+  }
+  55% {
+    transform: translateY(-8px) scale(0.96, 1.06);
+  }
+  100% {
+    transform: translateY(0) scale(1, 1);
+  }
+}
 
 @keyframes mono-tranco {
   0%,
@@ -1700,81 +1608,46 @@ button.tag:hover {
   }
 }
 
-/* Brinco con squash & stretch: se aplasta al tomar impulso, se estira en el
-   aire y rebota al caer. El cuerpo se siente blandito, no de cartón. */
-@keyframes mono-brinquito {
+@keyframes mono-arrastra {
   0%,
   100% {
-    transform: translateY(0) scale(1, 1);
+    transform: scale(1, 1);
   }
-  15% {
-    transform: translateY(0) scale(1.12, 0.86);
-  }
-  35% {
-    transform: translateY(-15px) scale(0.94, 1.1);
-  }
-  55% {
-    transform: translateY(0) scale(1.1, 0.88);
-  }
-  70% {
-    transform: translateY(0) scale(1, 1);
+  50% {
+    transform: scale(1.05, 0.96);
   }
 }
 
-/* Dos brinquitos de calentamiento y la pirueta completa: agacharse hondo,
-   springar girando 360° y aterrizar aplastadita. */
+/* Dos agachadas y la pirueta: tope de 19px de salto. */
 @keyframes mono-pirueta {
   0%,
-  10% {
+  40% {
     transform: translateY(0) scale(1, 1) rotate(0deg);
   }
-  16% {
-    transform: translateY(0) scale(1.15, 0.82) rotate(0deg);
-  }
-  24% {
-    transform: translateY(-6px) scale(0.95, 1.08) rotate(0deg);
-  }
-  30% {
-    transform: translateY(0) scale(1.05, 0.94) rotate(0deg);
-  }
-  38%,
-  52% {
-    transform: translateY(0) scale(1, 1) rotate(0deg);
+  48% {
+    transform: translateY(0) scale(1.15, 0.84) rotate(0deg);
   }
   58% {
-    transform: translateY(0) scale(1.18, 0.8) rotate(0deg);
+    transform: translateY(-14px) scale(0.94, 1.08) rotate(-140deg);
   }
   66% {
-    transform: translateY(-16px) scale(0.92, 1.1) rotate(-150deg);
+    transform: translateY(-18px) scale(0.96, 1.04) rotate(-260deg);
   }
-  74% {
-    transform: translateY(-19px) scale(0.95, 1.05) rotate(-270deg);
+  76% {
+    transform: translateY(-1px) scale(1.1, 0.88) rotate(-360deg);
   }
-  82% {
-    transform: translateY(-1px) scale(1.12, 0.86) rotate(-360deg);
-  }
-  88%,
+  84%,
   100% {
     transform: translateY(0) scale(1, 1) rotate(-360deg);
   }
 }
 
-@keyframes mono-pata {
-  0%,
-  100% {
-    transform: rotate(13deg);
-  }
-  50% {
-    transform: rotate(-13deg);
-  }
-}
-
 @keyframes mono-planeo {
   from {
-    transform: rotate(6deg);
+    transform: rotate(5deg);
   }
   to {
-    transform: rotate(-6deg);
+    transform: rotate(-5deg);
   }
 }
 
@@ -1783,28 +1656,46 @@ button.tag:hover {
     transform: translateY(0);
   }
   to {
-    transform: translateY(16px);
+    transform: translateY(var(--mono-ola));
+  }
+}
+
+@keyframes mono-respira {
+  0%,
+  100% {
+    transform: scaleY(1);
+  }
+  50% {
+    transform: scaleY(1.03);
+  }
+}
+
+@keyframes mono-pata {
+  0%,
+  100% {
+    transform: rotate(10deg);
+  }
+  50% {
+    transform: rotate(-10deg);
   }
 }
 
 @keyframes mono-cola {
   0%,
   100% {
-    transform: rotate(0deg);
+    transform: rotate(-6deg);
   }
   50% {
-    transform: rotate(9deg);
+    transform: rotate(8deg);
   }
 }
 
-@keyframes mono-parpadeo {
-  0%,
-  92%,
-  100% {
-    transform: scaleY(1);
+@keyframes mono-timon {
+  from {
+    transform: rotate(-7deg);
   }
-  95% {
-    transform: scaleY(0.15);
+  to {
+    transform: rotate(7deg);
   }
 }
 
@@ -1814,149 +1705,99 @@ button.tag:hover {
     transform: rotate(0deg);
   }
   40% {
-    transform: rotate(6deg);
+    transform: rotate(7deg);
   }
 }
 
-@keyframes mono-aleteo {
+@keyframes mono-cuerno {
   from {
-    transform: rotate(0deg);
+    transform: rotate(-7deg);
   }
   to {
-    transform: rotate(-35deg);
+    transform: rotate(7deg);
   }
 }
-
-/* --- Zetas y notas -------------------------------------------------------- */
 
 @keyframes mono-z {
   0% {
     opacity: 0;
     transform: translateY(3px);
   }
-  30% {
+  25%,
+  65% {
     opacity: 0.8;
   }
   100% {
     opacity: 0;
-    transform: translateY(-5px);
+    transform: translateY(-6px);
   }
 }
 
-.mono__z {
-  animation: mono-z 3s ease-in-out infinite;
-}
+/* --- Pantallas chicas: se achican, y los del medio se retiran primero ------ */
+/* El suelo libre es ~0,5 por px de alto de ventana (menos ~310px): a poca
+   altura ya no hay sitio sin pisar el reloj. */
 
-.mono__z--lejos {
-  animation-delay: 1.5s;
-}
-
-.mono__nota {
-  animation: mono-z 2.2s ease-in-out infinite;
-}
-
-/* --- El poof de la transformación ----------------------------------------- */
-/* Al rotar la piel, estrellitas destacador estallan sobre cada monito y el
-   diseño nuevo aparece debajo del brillo, como los padrinos mágicos. */
-
-.mono__poof {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-}
-
-.poof__chispa {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 7px;
-  height: 7px;
-  opacity: 0;
-  background: var(--marca-amarillo);
-  border: 1.5px solid var(--papel);
-  box-shadow: 0 0 0 0.5px var(--papel);
-  animation: mono-destello 0.65s ease-out forwards;
-}
-
-.poof__chispa:nth-child(4n + 2) {
-  background: var(--marca-rosa);
-}
-
-.poof__chispa:nth-child(4n + 3) {
-  background: var(--marca-verde);
-}
-
-.poof__chispa:nth-child(4n) {
-  background: var(--marca-azul);
-}
-
-.poof__chispa:nth-child(1) {
-  --dx: -26px;
-  --dy: -16px;
-}
-
-.poof__chispa:nth-child(2) {
-  --dx: 0px;
-  --dy: -28px;
-  animation-delay: 0.04s;
-}
-
-.poof__chispa:nth-child(3) {
-  --dx: 26px;
-  --dy: -16px;
-  animation-delay: 0.08s;
-}
-
-.poof__chispa:nth-child(4) {
-  --dx: 30px;
-  --dy: 6px;
-  animation-delay: 0.02s;
-}
-
-.poof__chispa:nth-child(5) {
-  --dx: 18px;
-  --dy: 24px;
-  animation-delay: 0.06s;
-}
-
-.poof__chispa:nth-child(6) {
-  --dx: -18px;
-  --dy: 24px;
-  animation-delay: 0.03s;
-}
-
-.poof__chispa:nth-child(7) {
-  --dx: -30px;
-  --dy: 6px;
-  animation-delay: 0.07s;
-}
-
-.poof__chispa:nth-child(8) {
-  --dx: 8px;
-  --dy: -20px;
-  animation-delay: 0.1s;
-}
-
-@keyframes mono-destello {
-  0% {
-    opacity: 0;
-    transform: translate(-50%, -50%) scale(0.3) rotate(0deg);
-  }
-  20% {
-    opacity: 1;
-  }
-  100% {
-    opacity: 0;
-    transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) scale(1) rotate(225deg);
+@media (max-width: 1100px) {
+  .mono {
+    --mono-escala: 0.85;
   }
 }
 
-/* Sin movimiento: monitos quietos y cambio de piel seco, sin destello. */
+@media (max-width: 980px) {
+  .mono {
+    --mono-escala: 0.72;
+  }
+}
+
+@media (max-height: 820px) {
+  .mono--appa {
+    --mono-ola: 3px;
+  }
+}
+
+@media (max-height: 760px) {
+  .mono--conejito,
+  .mono--ranita {
+    --caja-tope: 64px;
+  }
+}
+
+@media (max-height: 740px) {
+  .mono--gatito,
+  .mono--cuy,
+  .mono--caracol,
+  .mono--perrito {
+    display: none;
+  }
+}
+
+@media (max-height: 700px) {
+  .mono {
+    display: none;
+  }
+}
+
+/* Con la ventana oculta no se gasta cuadro en nadie. */
+.mono[data-oculto],
+.mono[data-oculto] * {
+  animation-play-state: paused !important;
+}
+
+/* Sin movimiento: todos quietos y centrados en su carril; las tres poses se
+   siguen distinguiendo por el dibujo. */
 @media (prefers-reduced-motion: reduce) {
   .mono,
-  .mono svg,
   .mono * {
     animation: none !important;
+    transition: none !important;
+  }
+
+  .mono__paseo {
+    transform: translateX(calc((100% - var(--caja-ancho)) / 2));
+  }
+
+  .mono__voltea {
+    transform: scaleX(var(--mira)) !important;
   }
 }
 
@@ -2860,7 +2701,8 @@ button.tag:hover {
   height: 100%;
   border-radius: 2px;
   background: var(--azul);
-  transition: width 400ms cubic-bezier(0.2, 0, 0, 1);
+  transform-origin: left;
+  transition: transform 400ms cubic-bezier(0.2, 0, 0, 1);
 }
 
 .malla__columna {

@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><title>Prevista monitos</title>
+<script type="module">
+import RefreshRuntime from '/@react-refresh'
+RefreshRuntime.injectIntoGlobalHook(window)
+window.$RefreshReg$ = () => {}
+window.$RefreshSig$ = () => (type) => type
+window.__vite_plugin_react_preamble_installed__ = true
+</script>
+<style>
+body{margin:0;padding:12px;background:var(--papel);}
+.rejilla{display:grid;grid-template-columns:repeat(var(--cols,3),1fr);gap:4px 12px}
+.celda{position:relative;border-bottom:1px dashed #ccc;padding-bottom:16px}
+.celda .mono{overflow:visible;position:relative !important;left:auto !important;bottom:auto !important;top:auto !important;width:var(--w,200px) !important;height:auto !important;display:block}
+.celda .mono__fig{width:100%}
+.celda .suelo{position:absolute;left:0;right:0;border-top:1px solid #f0a;opacity:.4}
+.celda small{position:absolute;left:2px;top:2px;font:10px monospace;color:#999}
+</style>
+</head><body>
+<div id="raiz"></div>
+<script type="module" src="/.ui-pipeline/herramientas/prevista-monitos.tsx"></script>
+</body></html>

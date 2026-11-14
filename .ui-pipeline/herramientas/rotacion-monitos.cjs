@@ -1,0 +1,33 @@
+// A8: la rotación espera la pausa, persiste entre pestañas y no se dispara con la ventana oculta.
+const { chromium } = require('playwright');
+(async () => {
+  const b = await chromium.launch({ headless: true, executablePath: process.env.PW_EXECUTABLE_PATH });
+  const page = await (await b.newContext({ viewport: { width: 1440, height: 900 } })).newPage();
+  const errs = []; page.on('pageerror', (e) => errs.push(String(e)));
+  await page.clock.install();
+  await page.goto('http://localhost:5199');
+  await page.getByRole('button', { name: 'Descanso', exact: true }).first().click();
+  const rota = () => page.evaluate(() => document.querySelectorAll('.mono[data-rota]').length);
+  const boton = page.locator('.reloj__mandos .btn--fuerte');
+  await boton.click();
+  await page.clock.runFor(16 * 60 * 1000);
+  console.log('foco, 16 min: con data-rota =', await rota(), '(esperado 0)');
+  await page.getByRole('button', { name: 'Saltar' }).click();
+  if ((await boton.textContent()) !== 'Pausar') await boton.click();
+  await page.clock.runFor(100);
+  console.log('al entrar en pausa: con data-rota =', await rota(), '(esperado 7)');
+  await page.clock.runFor(800);
+  console.log('tras el fundido: con data-rota =', await rota(), '(esperado 0)');
+  await page.getByRole('button', { name: 'Apuntes', exact: true }).first().click();
+  await page.clock.runFor(5 * 60 * 1000);
+  await page.getByRole('button', { name: 'Descanso', exact: true }).first().click();
+  await page.clock.runFor(100);
+  console.log('volver a los 5 min (plazo sin vencer): data-rota =', await rota(), '(esperado 0)');
+  await page.getByRole('button', { name: 'Apuntes', exact: true }).first().click();
+  await page.clock.runFor(11 * 60 * 1000);
+  await page.getByRole('button', { name: 'Descanso', exact: true }).first().click();
+  await page.clock.runFor(100);
+  console.log('volver pasados los 15 min: data-rota =', await rota(), '(esperado 7: el plazo viajó entre pestañas)');
+  console.log('errores:', JSON.stringify(errs));
+  await b.close();
+})();

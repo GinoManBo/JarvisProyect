@@ -1,0 +1,33 @@
+{
+  "version": 1,
+  "animal": "gatito",
+  "estilo": "caricatura",
+  "render": "suave",
+  "celdaPx": 256,
+  "animaciones": {
+    "reposo": {
+      "fuente": { "tipo": "hoja", "archivo": "reposo.png", "columnas": 4, "cuadros": 12 },
+      "duraciones": [480, 110, 110, 110, 110, 440, 110, 110, 110, 110, 110, 320],
+      "bucle": true,
+      "fijo": 0
+    },
+    "dormir": {
+      "fuente": { "tipo": "hoja", "archivo": "dormir.png", "columnas": 4, "cuadros": 8 },
+      "duraciones": [350, 180, 180, 350, 350, 180, 180, 350],
+      "bucle": true,
+      "fijo": 0
+    },
+    "caminar": {
+      "fuente": { "tipo": "secuencia", "patron": "caminar/caminar_{n}.png", "digitos": 2, "cuadros": 12 },
+      "duraciones": [100, 80, 80, 80, 80, 80, 100, 80, 80, 80, 80, 80],
+      "bucle": true,
+      "fijo": 0
+    },
+    "poof": {
+      "fuente": { "tipo": "hoja", "archivo": "poof.png", "columnas": 5, "cuadros": 10 },
+      "duraciones": [50, 50, 50, 70, 70, 70, 70, 70, 80, 90],
+      "bucle": false,
+      "marcas": { "cubre": 3, "libera": 5 }
+    }
+  }
+}

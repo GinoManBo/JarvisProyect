@@ -1,75 +1,117 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import type { Fase } from '../lib/reloj'
-import { PIEL as TINTA } from './MonitosTinta'
-import { PIEL as PIXEL } from './MonitosPixel'
-import { pielFigura } from './MonitosFigura'
+import { PIEL as PLUMA } from './MonitosPluma'
+import { PIEL as PLUMON } from './MonitosPlumon'
+import { PIEL as TIMBRE } from './MonitosTimbre'
+import { MonitoSprite } from './MonitosSprite'
+import { Pradera } from './Pradera'
+import { tieneArte } from '../personajes/catalogo'
 
 /**
- * Los monitos del margen: seis animalitos que pasean por la pantalla del
- * pomodoro. Este orquestador pone las capas de movimiento (paseo, volteo,
- * vuelo de Appa) y elige la piel — tinta, pixel, retro o kawaii — que rota
- * cada 15 minutos con un destello de transformación estilo padrinos mágicos.
- * Acuarela, papel, neón y plastilina comparten geometría (MonitosFigura) y se
- * diferencian sólo por CSS; tinta y pixel tienen su propio dibujo.
- * Las pieles comparten interfaz: reciben el ánimo y entregan el svg.
- * Duermen con el reloj parado, acompañan en foco y juegan en la pausa.
+ * Los monitos del margen: siete animalitos que acompañan el pomodoro. Este
+ * orquestador pone las capas de movimiento y elige la piel — pluma, plumón o
+ * timbre — que rota cada 15 minutos con un fundido, nunca mientras se estudia.
+ *
+ * DOM por animal (el carril es el `.mono`; la patrulla vive en CSS):
+ *   .mono > .mono__paseo > .mono__voltea > [.mono__ola >] svg.mono__fig
+ *
+ * Las pieles comparten interfaz: reciben el ánimo y entregan el svg. Duermen
+ * con el reloj parado, acompañan quietos en foco y juegan en la pausa.
  */
 
 export type Animo = 'estudia' | 'recreo' | 'siesta'
 export type Animal = 'gatito' | 'perrito' | 'conejito' | 'ranita' | 'caracol' | 'cuy' | 'appa'
-export type Estilo = 'tinta' | 'pixel' | 'acuarela' | 'papel' | 'neon' | 'plastilina'
+export type Estilo = 'pluma' | 'plumon' | 'timbre'
 
 export const animoDe = (fase: Fase, corriendo: boolean): Animo =>
   !corriendo ? 'siesta' : fase === 'foco' ? 'estudia' : 'recreo'
 
 const PIELES: Record<Estilo, Record<Animal, (animo: Animo) => ReactNode>> = {
-  tinta: TINTA,
-  pixel: PIXEL,
-  acuarela: pielFigura('acuarela'),
-  papel: pielFigura('papel'),
-  neon: pielFigura('neon'),
-  plastilina: pielFigura('plastilina'),
+  pluma: PLUMA,
+  plumon: PLUMON,
+  timbre: TIMBRE,
 }
 
 /** Orden de la rotación: cada 15 minutos pasa a la siguiente. */
-const ESTILOS: Estilo[] = ['tinta', 'acuarela', 'pixel', 'papel', 'plastilina', 'neon']
+const ESTILOS: Estilo[] = ['pluma', 'plumon', 'timbre']
 
 const ANIMALES: Animal[] = ['gatito', 'perrito', 'conejito', 'ranita', 'caracol', 'cuy', 'appa']
 
-// OJO: modo prueba para revisar las pieles; volver a 15 * 60 * 1000.
-const ROTACION = 5 * 1000
-const POOF = 700
+const ROTACION = 15 * 60 * 1000
+const FUNDIDO = 700
+const REVISION = 30 * 1000
+
+/** Lo que sobrevive al desmontaje de Descanso: la piel puesta y desde cuándo.
+    Vive a nivel de módulo (como el reloj vive sobre las secciones), para que
+    cambiar de pestaña no reinicie el plazo de los 15 minutos. */
+const memoria = { estilo: ESTILOS[0], ultimoCambio: Date.now() }
 
 export function Monitos({ animo }: { animo: Animo }) {
-  const [estilo, setEstilo] = useState<Estilo>('acuarela')
-  const [poof, setPoof] = useState(false)
-  const tPoof = useRef(0)
+  const [estilo, setEstilo] = useState<Estilo>(memoria.estilo)
+  const [rota, setRota] = useState(false)
+  const [oculto, setOculto] = useState(document.hidden)
+  const animoRef = useRef(animo)
+  const intentar = useRef<() => void>(() => {})
+  const tFundido = useRef(0)
 
+  // La rotación sólo ocurre fuera de foco y con la ventana a la vista; si el
+  // plazo vence estudiando, queda pendiente hasta la pausa o la siesta.
   useEffect(() => {
-    const t = window.setInterval(() => {
-      setEstilo((e) => ESTILOS[(ESTILOS.indexOf(e) + 1) % ESTILOS.length])
-      setPoof(true)
-      tPoof.current = window.setTimeout(() => setPoof(false), POOF)
-    }, ROTACION)
+    intentar.current = () => {
+      if (animoRef.current === 'estudia' || document.hidden) return
+      if (Date.now() - memoria.ultimoCambio < ROTACION) return
+      memoria.estilo = ESTILOS[(ESTILOS.indexOf(memoria.estilo) + 1) % ESTILOS.length]
+      memoria.ultimoCambio = Date.now()
+      setEstilo(memoria.estilo)
+      setRota(true)
+      window.clearTimeout(tFundido.current)
+      tFundido.current = window.setTimeout(() => setRota(false), FUNDIDO)
+    }
+    const alCambiarVista = () => {
+      setOculto(document.hidden)
+      intentar.current()
+    }
+    const t = window.setInterval(() => intentar.current(), REVISION)
+    document.addEventListener('visibilitychange', alCambiarVista)
     return () => {
       window.clearInterval(t)
-      window.clearTimeout(tPoof.current)
+      window.clearTimeout(tFundido.current)
+      document.removeEventListener('visibilitychange', alCambiarVista)
     }
   }, [])
+
+  useEffect(() => {
+    animoRef.current = animo
+    intentar.current()
+  }, [animo])
 
   const piel = PIELES[estilo]
 
   return (
     <>
+      <Pradera animo={animo} />
       {ANIMALES.map((animal) => (
-        <div key={animal} className={`mono mono--${animal}`} data-animo={animo} aria-hidden="true">
-          <div className="mono__voltea">
-            {animal === 'appa' ? (
-              <div className="mono__ola">{piel[animal](animo)}</div>
-            ) : (
-              piel[animal](animo)
-            )}
-            {poof && <Destello />}
+        <div
+          key={animal}
+          className={`mono mono--${animal}`}
+          data-animo={animo}
+          data-oculto={oculto ? '' : undefined}
+          data-rota={rota ? '' : undefined}
+          aria-hidden="true"
+        >
+          <div className="mono__paseo">
+            {/* La llave por ánimo y piel rehace el voltea: el despertar, el
+                brinquito y el fundido parten de cero en cada cambio, y el giro
+                no queda a medias. */}
+            <div className="mono__voltea" key={`${animo}-${estilo}`}>
+              {tieneArte(animal, 'pixel') ? (
+                <MonitoSprite animal={animal} animo={animo} />
+              ) : animal === 'appa' ? (
+                <div className="mono__ola">{piel[animal](animo)}</div>
+              ) : (
+                piel[animal](animo)
+              )}
+            </div>
           </div>
         </div>
       ))}
@@ -77,13 +119,3 @@ export function Monitos({ animo }: { animo: Animo }) {
   )
 }
 
-/** El poof de la transformación: estrellitas destacador que estallan y se van. */
-function Destello() {
-  return (
-    <span className="mono__poof">
-      {Array.from({ length: 8 }, (_, i) => (
-        <i key={i} className="poof__chispa" />
-      ))}
-    </span>
-  )
-}
