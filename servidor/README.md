@@ -53,6 +53,10 @@ Para comprobar que está vivo: `https://<dominio>/salud` responde `{"ok":true}`.
   → 28, 21, 14, 7, 1 y 0 días antes). Si uno ya llegó y no se mandó, sale; si el
   servicio estuvo caído, el perdido sale una vez, no uno por día.
 - Todo lo que toca el mismo día va en un solo mensaje.
+- Cada vez que Jarvis manda la lista y algo cambió, avisa *"Agenda actualizada"*
+  con lo nuevo, lo cambiado (título, fecha o frecuencia) y lo eliminado. Abrir
+  Jarvis sin cambios, renombrar un ramo o que un evento pase de fecha no avisan.
+  La primera sincronización de un servicio nuevo manda sólo un resumen.
 - Cambiar la fecha o la frecuencia de un evento reinicia su cuenta.
 - La tabla de frecuencias está repetida en `src/lib/avisos.ts` (`AVISOS`):
   cambiar las dos.

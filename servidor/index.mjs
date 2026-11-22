@@ -47,7 +47,7 @@ const SECRETO_WEBHOOK = createHash('sha256').update(`webhook:${CLAVE}`).digest('
  * @typedef {{ id: string, titulo: string, fecha: string, tipo: string, ramo: string | null,
  *             aviso: 'dia' | 'semana' | 'quincena' | 'mes' | null }} Evento
  * @typedef {{ chatId: number | null, nombre: string | null, eventos: Evento[],
- *             avisados: Record<string, string> }} Estado
+ *             avisados: Record<string, string>, sincronizado?: boolean }} Estado
  */
 
 const ARCHIVO = path.join(DIR, 'estado.json')
@@ -93,22 +93,29 @@ const aDia = (clave) => Date.UTC(...clave.split('-').map((n, i) => Number(n) - (
 const desdeDia = (n) => new Date(n * 86_400_000).toISOString().slice(0, 10)
 const diasEntre = (desde, hasta) => Math.round(aDia(hasta) - aDia(desde))
 
+/** "3 de diciembre". */
+function fechaLarga(fecha) {
+  const [, m, dia] = fecha.split('-').map(Number)
+  return `${dia} de ${MESES[m - 1]}`
+}
+
 function cuando(fecha, hoy) {
   const d = diasEntre(hoy, fecha)
   if (d === 0) return 'Hoy'
   if (d === 1) return 'Mañana'
-  const [, m, dia] = fecha.split('-').map(Number)
-  return `En ${d} días (${dia} de ${MESES[m - 1]})`
+  return `En ${d} días (${fechaLarga(fecha)})`
 }
 
 /* --- Qué toca avisar (misma tabla que AVISOS en src/lib/avisos.ts) ------- */
 
 const AVISOS = {
-  dia: { desde: 1, cada: 1 },
-  semana: { desde: 7, cada: 1 },
-  quincena: { desde: 14, cada: 2 },
-  mes: { desde: 28, cada: 7 },
+  dia: { desde: 1, cada: 1, rotulo: 'el día antes' },
+  semana: { desde: 7, cada: 1, rotulo: 'cada día, la última semana' },
+  quincena: { desde: 14, cada: 2, rotulo: 'cada 2 días, las últimas 2 semanas' },
+  mes: { desde: 28, cada: 7, rotulo: 'cada semana, el último mes' },
 }
+
+const rotuloAviso = (aviso) => (aviso ? `aviso ${AVISOS[aviso].rotulo}` : 'sin aviso')
 
 /** Días antes del evento en que toca avisar. Siempre incluye la víspera y el mismo día. */
 function diasDeAviso(aviso) {
@@ -219,6 +226,42 @@ async function alMensaje(msg) {
   }
 }
 
+/* --- Qué cambió en la agenda -------------------------------------------- */
+
+/**
+ * Mensaje con lo nuevo, lo borrado y lo cambiado entre dos listas, o null si no
+ * cambió nada que importe. Lo que sale de la lista porque ya pasó no es "borrado"
+ * (Jarvis sólo manda de hoy en adelante), y cambiar el nombre del ramo o el tipo
+ * no avisa: sólo título, fecha y frecuencia del aviso.
+ */
+function resumenCambios(antes, despues, hoy) {
+  const nuevos = []
+  const cambiados = []
+  for (const e of despues) {
+    const previo = antes.get(e.id)
+    if (!previo) {
+      nuevos.push(`• ${fechaLarga(e.fecha)}: ${e.titulo} (${e.tipo}${e.ramo ? `, ${e.ramo}` : ''}) · ${rotuloAviso(e.aviso)}`)
+      continue
+    }
+    const que = []
+    if (previo.titulo !== e.titulo) que.push(`antes "${previo.titulo}"`)
+    if (previo.fecha !== e.fecha) que.push(`ahora el ${fechaLarga(e.fecha)}`)
+    if (previo.aviso !== e.aviso) que.push(rotuloAviso(e.aviso))
+    if (que.length) cambiados.push(`• ${e.titulo}: ${que.join(' · ')}`)
+  }
+  const siguen = new Set(despues.map((e) => e.id))
+  const borrados = [...antes.values()]
+    .filter((e) => !siguen.has(e.id) && diasEntre(hoy, e.fecha) >= 0)
+    .map((e) => `• ${e.titulo} (${fechaLarga(e.fecha)})`)
+
+  if (!nuevos.length && !cambiados.length && !borrados.length) return null
+  const partes = ['Agenda actualizada']
+  if (nuevos.length) partes.push(`Nuevo:\n${nuevos.join('\n')}`)
+  if (cambiados.length) partes.push(`Cambió:\n${cambiados.join('\n')}`)
+  if (borrados.length) partes.push(`Eliminado:\n${borrados.join('\n')}`)
+  return partes.join('\n\n')
+}
+
 /* --- HTTP ---------------------------------------------------------------- */
 
 const CLAVE_HASH = createHash('sha256').update(CLAVE).digest()
@@ -293,9 +336,22 @@ const servidor = http.createServer(async (req, res) => {
         if (ultimo && previo && previo.fecha === e.fecha && previo.aviso === e.aviso) avisados[e.id] = ultimo
       }
       estado.avisados = avisados
+
+      // La primera vez (servicio nuevo o volumen vacío) todo sería "nuevo": en vez
+      // de listarlo entero, un resumen. Después, sólo lo que cambió.
+      const { hoy } = ahoraEnChile()
+      const primera = !estado.sincronizado
+      const cambios = primera
+        ? `Jarvis está conectado: ${estado.eventos.length} ${estado.eventos.length === 1 ? 'evento' : 'eventos'} en la agenda. /proximos los muestra.`
+        : resumenCambios(antes, estado.eventos, hoy)
+      estado.sincronizado = true
       await guardar()
-      void revisar()
-      return responder(res, 200, { ok: true, vinculado: estado.chatId !== null })
+      responder(res, 200, { ok: true, vinculado: estado.chatId !== null })
+
+      // Primero lo que cambió, después los recordatorios que eso haya destapado.
+      if (cambios) await enviar(cambios)
+      await revisar()
+      return
     }
 
     if (req.method === 'POST' && ruta === '/mensaje') {

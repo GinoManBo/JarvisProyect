@@ -159,6 +159,8 @@ los recordatorios llegan aunque el Mac esté apagado.
   cada día la última semana, cada 2 días las últimas 2 semanas, o cada semana el
   último mes (siempre también la víspera y el mismo día). Los manda el servicio,
   entre las 9:00 y las 23:00 hora de Chile, aunque el Mac esté apagado.
+- **Agenda actualizada**: al crear, borrar o cambiar (fecha, título o aviso) un
+  evento, llega un mensaje con lo que cambió.
 - **`/proximos`** en el bot lista lo que viene; **`/desvincular`** suelta el chat.
 
 El servicio guarda sólo los eventos futuros (título, fecha, tipo, ramo). Los

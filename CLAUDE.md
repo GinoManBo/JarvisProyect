@@ -189,7 +189,12 @@ in `App`) PUTs every upcoming event — with its `aviso` preset or null — 2 s 
 change, retrying every 5 min while offline; it waits for `cargados` from `ProveedorDatos`,
 because before the disk read `eventos` is `[]` and would wipe the list on the server. The
 pomodoro POSTs one message when a focus block ends. The service decides what is due and
-tracks what it already sent; changing an event's date or preset resets that. The preset
+tracks what it already sent; changing an event's date or preset resets that. Every PUT
+is diffed against the previous list (`resumenCambios`): new / changed (title, date,
+preset only) / deleted events go out as one "Agenda actualizada" message; events that
+dropped out because their date passed are not "deleted", and an unchanged PUT (every
+app open) sends nothing. The very first PUT (`sincronizado` unset) sends a one-line
+summary instead of listing everything as new. The preset
 table (`AVISOS`) exists in both `src/lib/avisos.ts` and `servidor/index.mjs` — change both.
 
 **Flashcards have no scheduling.** There was an SM-2 in `src/lib/repaso.ts`; it was
