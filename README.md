@@ -71,9 +71,23 @@ Detalles del servicio (cómo decide qué avisar, seguridad): `servidor/README.md
 Desde **su** Telegram (el celular de ella), abre `t.me/<usuario_del_bot>` y toca
 **Iniciar**. El bot responde *"Listo. Desde ahora Jarvis te avisa por acá…"*.
 
-> El primer `/start` que reciba el bot es el que queda vinculado. Hazlo apenas
-> despliegues, y que lo haga ella, no tú. Si se vinculó el chat equivocado: en
-> Railway borra el volumen (o el archivo `estado.json` dentro) y redespliega.
+> El primer `/start` que reciba el bot es el que queda vinculado.
+
+**Cambiar de cuenta** (p. ej. lo probaste con la tuya y ahora va la de ella):
+
+1. Desde el chat vinculado, mándale `/desvincular` al bot. Sólo ese chat puede.
+2. Ella abre `t.me/<usuario_del_bot>` y toca **Iniciar** (si ya había abierto el
+   bot antes, que mande `/start`).
+3. En Jarvis, Planificación → Telegram dice *Conectado … con <su nombre>*.
+
+Entre el paso 1 y el 2 el bot acepta el primer `/start` que llegue: hazlos seguidos.
+
+> **Un solo Jarvis por servicio.** Cada Jarvis abierto le manda *su* lista de
+> eventos al servicio y reemplaza la anterior. Si ella ya usa la app, no corras
+> `npm run dev` con el mismo `.env`: tus eventos de prueba pisarían los de ella
+> (se corrige solo la próxima vez que ella abra la app o cambie un evento, pero
+> mientras tanto le pueden llegar avisos tuyos). Para desarrollar, deja
+> `AVISOS_URL` vacío o usa un segundo servicio.
 
 ### 6. Configurar Jarvis para hablar con el servicio
 
@@ -145,7 +159,7 @@ los recordatorios llegan aunque el Mac esté apagado.
   cada día la última semana, cada 2 días las últimas 2 semanas, o cada semana el
   último mes (siempre también la víspera y el mismo día). Los manda el servicio,
   entre las 9:00 y las 23:00 hora de Chile, aunque el Mac esté apagado.
-- **`/proximos`** en el bot lista lo que viene.
+- **`/proximos`** en el bot lista lo que viene; **`/desvincular`** suelta el chat.
 
 El servicio guarda sólo los eventos futuros (título, fecha, tipo, ramo). Los
 apuntes y todo lo demás no salen del Mac.

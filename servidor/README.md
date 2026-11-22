@@ -39,6 +39,10 @@ volumen de Railway.
 6. **Vincular.** Javiera abre el bot en Telegram y toca *Iniciar*. En Jarvis,
    Planificación → Telegram pasa a "Conectado".
 
+   Para cambiar de cuenta: desde el chat vinculado, `/desvincular`; luego el
+   `/start` de la cuenta nueva. Desvincular también borra el registro de lo ya
+   avisado, para que la cuenta nueva reciba lo que toca hoy.
+
 Para comprobar que está vivo: `https://<dominio>/salud` responde `{"ok":true}`.
 
 ## Cómo decide
@@ -58,6 +62,6 @@ Para comprobar que está vivo: `https://<dominio>/salud` responde `{"ok":true}`.
 - Todo endpoint salvo `/salud` y `/telegram` pide `Authorization: Bearer <CLAVE_JARVIS>`.
 - `/telegram` sólo acepta lo que traiga el `secret_token` que se registró con el
   webhook (derivado de la clave).
-- El bot sólo le contesta al chat vinculado.
+- El bot sólo le contesta al chat vinculado, y sólo ese chat puede `/desvincular`.
 - Si se filtra el `.app`: cambiar `CLAVE_JARVIS` en Railway y recompilar Jarvis.
   El token del bot no está en la app.

@@ -202,8 +202,20 @@ async function alMensaje(msg) {
       .sort((a, b) => a.fecha.localeCompare(b.fecha))
       .slice(0, 12)
     await enviar(lista.length ? `Lo que viene\n\n${lista.map((e) => linea(e, hoy)).join('\n')}` : 'No hay nada agendado.')
+  } else if (texto.startsWith('/desvincular')) {
+    // Sólo llega acá el chat vinculado: nadie más puede soltarlo.
+    if (CHAT_FIJO !== null) {
+      await enviar('Este chat está fijado con TELEGRAM_CHAT_ID en Railway; se cambia ahí.')
+      return
+    }
+    await enviar('Listo, este chat ya no recibe avisos. El próximo /start que llegue al bot queda vinculado.')
+    estado.chatId = null
+    estado.nombre = null
+    // Que la cuenta nueva reciba los recordatorios que le tocan hoy.
+    estado.avisados = {}
+    await guardar()
   } else if (texto.startsWith('/start')) {
-    await enviar('Ya estás vinculada. /proximos muestra lo que viene.')
+    await enviar('Ya estás vinculada. /proximos muestra lo que viene; /desvincular suelta este chat.')
   }
 }
 
