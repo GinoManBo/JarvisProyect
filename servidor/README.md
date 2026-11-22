@@ -16,14 +16,17 @@ volumen de Railway.
    `/datos`. Sin volumen, cada deploy olvida a quién avisar y qué ya avisó.
 3. **Dominio público.** *Settings → Networking → Generate Domain*. El servicio
    lo usa para registrar el webhook de Telegram al arrancar.
-4. **Variables** (*Variables*):
+4. **Variables** (*Variables*). Las dos primeras son obligatorias: sin ellas el
+   servicio se niega a arrancar y el deploy falla.
 
-   | Variable          | Qué es                                                                 |
+   | Variable          | De dónde sale el valor                                                 |
    |-------------------|------------------------------------------------------------------------|
-   | `TELEGRAM_TOKEN`  | El token que da @BotFather. Vive sólo acá.                             |
-   | `CLAVE_JARVIS`    | Clave larga al azar (mín. 24 caracteres). La misma va en el `.env` de Jarvis como `AVISOS_CLAVE`. Generar con `openssl rand -hex 32`. |
-   | `TELEGRAM_CHAT_ID`| Opcional. Fija el chat; si no, el primer `/start` lo vincula.          |
-   | `HORA_AVISO`      | Opcional. Hora de Chile desde la que salen los recordatorios (def. 9). |
+   | `TELEGRAM_TOKEN`  | En Telegram, chat con **@BotFather** → `/newbot` (o `/mybots` → el bot → *API Token* si ya existe). Se ve así: `123456789:AAH…` (números, dos puntos, ~35 caracteres). |
+   | `CLAVE_JARVIS`    | Inventada por ti: en tu terminal, `openssl rand -hex 32` y copia la línea que sale (64 caracteres hex). Es una contraseña entre Jarvis y el servicio; la misma va en el `.env` de Jarvis como `AVISOS_CLAVE`. |
+   | `TELEGRAM_CHAT_ID`| Opcional — mejor no crearla. Sin ella, el primer `/start` vincula.     |
+   | `HORA_AVISO`      | Opcional — un número de 0 a 22, p. ej. `9`. Vacía = 9.                 |
+
+   No crees `PORT` ni `RAILWAY_VOLUME_MOUNT_PATH`: Railway las pone solo.
 
 5. **Jarvis.** En el `.env` de la raíz del repo:
 

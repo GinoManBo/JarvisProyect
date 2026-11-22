@@ -18,7 +18,12 @@ const CHAT_FIJO = /^-?\d+$/.test(process.env.TELEGRAM_CHAT_ID ?? '')
   ? Number(process.env.TELEGRAM_CHAT_ID)
   : null
 const DIR = process.env.RAILWAY_VOLUME_MOUNT_PATH || process.env.DATOS_DIR || './datos'
-const HORA_AVISO = Number(process.env.HORA_AVISO ?? 9) // hora de Chile desde la que se avisa
+// Hora de Chile desde la que se avisa. Vacía o inválida = 9 (Railway deja vacías
+// las variables creadas sin valor, y Number('') sería 0: avisos a medianoche).
+const HORA_AVISO = /^\d{1,2}$/.test((process.env.HORA_AVISO ?? '').trim()) &&
+  Number(process.env.HORA_AVISO) < 23
+  ? Number(process.env.HORA_AVISO)
+  : 9
 const HORA_SILENCIO = 23 // y hasta la que se avisa
 const ZONA = 'America/Santiago'
 const PUERTO = Number(process.env.PORT ?? 3000)
