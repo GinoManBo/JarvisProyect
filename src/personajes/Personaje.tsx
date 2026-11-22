@@ -4,6 +4,7 @@ import { Reproductor } from './reproductor'
 import {
   ANCLA,
   LIENZO,
+  resolverAnimacion,
   type Animal,
   type EstiloArte,
   type EstiloCargado,
@@ -25,6 +26,8 @@ type Props = {
   animal: Animal
   estilo: EstiloArte
   animacion: NombreAnimacion
+  /** Cambiarlo reinicia la animación aunque sea la misma (dos sustos seguidos). */
+  serie?: number
   /** Lado de la caja en px CSS. */
   tam: number
   /** Cambiar de estilo con poof (por omisión sí). */
@@ -35,6 +38,10 @@ type Props = {
   alPaso?: (info: { estilo: EstiloArte; animacion: NombreAnimacion; paso: number }) => void
   /** Se llama al terminar de transformar, o cuando aparece el estilo por primera vez. */
   alListo?: (estilo: EstiloArte) => void
+  /** Marcas del cuerpo (p. ej. `impacto` en `jugar`). */
+  alMarca?: (nombre: string) => void
+  /** Fin de una animación de una pasada del cuerpo (caer, jugar, reaccion). */
+  alTerminar?: () => void
   etiqueta?: string
 }
 
@@ -73,11 +80,14 @@ export function Personaje({
   animal,
   estilo,
   animacion,
+  serie,
   tam,
   poof = true,
   reducido: reducidoForzado,
   alPaso,
   alListo,
+  alMarca,
+  alTerminar,
   etiqueta,
 }: Props) {
   const reducido = useMovimientoReducido(reducidoForzado)
@@ -87,8 +97,8 @@ export function Personaje({
   const fx = useRef<Reproductor | null>(null)
   const mostrado = useRef<EstiloCargado | null>(null)
   const ronda = useRef(0)
-  const cb = useRef({ alPaso, alListo })
-  cb.current = { alPaso, alListo }
+  const cb = useRef({ alPaso, alListo, alMarca, alTerminar })
+  cb.current = { alPaso, alListo, alMarca, alTerminar }
 
   useEffect(() => {
     cuerpo.current = new Reproductor(cuerpoEl.current!)
@@ -119,6 +129,8 @@ export function Personaje({
       c.reproducir(est, animacion, {
         reducido,
         alPaso: (paso) => cb.current.alPaso?.({ estilo: est.manifiesto.estilo, animacion, paso }),
+        alMarca: (marca) => vigente() && cb.current.alMarca?.(marca),
+        alTerminar: () => vigente() && cb.current.alTerminar?.(),
       })
     }
 
@@ -126,7 +138,7 @@ export function Personaje({
       if (!vigente()) return
       const previo = mostrado.current
       const cambiaEstilo = previo && previo.manifiesto.estilo !== destino.manifiesto.estilo
-      if (!cambiaEstilo || !poof || reducido) {
+      if (!cambiaEstilo || !poof || reducido || resolverAnimacion(destino, 'poof') !== 'poof') {
         poner(destino)
         if (!previo || cambiaEstilo) cb.current.alListo?.(estilo)
         return
@@ -153,7 +165,7 @@ export function Personaje({
       })
     })
     // `tam` y `reducido` rehacen la ronda sin poof (el estilo ya es el mostrado).
-  }, [animal, estilo, animacion, tam, poof, reducido])
+  }, [animal, estilo, animacion, serie, tam, poof, reducido])
 
   return (
     <div

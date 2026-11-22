@@ -1,0 +1,268 @@
+{
+  "version": 5,
+  "escena": "montana",
+  "px": 2,
+  "pxAncho": 1400,
+  "capas": {
+    "lejos": { "archivo": "lejos.png", "ancho": 320, "alto": 96, "abajo": 76 },
+    "suelo": { "archivo": "suelo.png", "ancho": 128, "alto": 80, "abajo": 0 },
+    "montana": { "archivo": "montana.png", "ancho": 208, "alto": 176, "x": -24, "abajo": 68 },
+    "momo": { "archivo": "momo.png", "ancho": 112, "alto": 96, "cuadros": 2, "x": 0, "abajo": 220 },
+    "brillo": { "archivo": "brillo.png", "ancho": 64, "alto": 30, "cuadros": 4 },
+    "espuma": { "archivo": "espuma.png", "ancho": 40, "alto": 12, "cuadros": 4, "x": 126, "abajo": 62 },
+    "nubes": { "archivo": "nubes.png", "ancho": 64, "alto": 24, "cuadros": 3 },
+    "petalos": { "archivo": "petalos.png", "ancho": 6, "alto": 6, "cuadros": 4 },
+    "koi": { "archivo": "koi.png", "ancho": 32, "alto": 16, "cuadros": 6, "filas": 3 },
+    "koiGiro": { "archivo": "koi-giro.png", "ancho": 32, "alto": 16, "cuadros": 3, "filas": 3 }
+  },
+  "agua": { "abajo": 42, "alto": 30 },
+  "rio": {
+    "puntos": [[92, 34], [104, 52], [96, 74], [116, 96], [134, 118], [128, 140], [150, 160], [168, 174]],
+    "ancho": 5,
+    "destellos": 9
+  },
+  "copa": { "x": 8, "y": 6, "ancho": 96, "alto": 58 },
+  "koi": { "cantidad": 3, "xMin": 8, "margen": 8, "msCuadro": 110, "msGiro": 120 },
+  "petalos": { "cantidad": 20 },
+  "cielo": {
+    "dia": {
+      "bandas": ["#7cbdf1", "#95caf4", "#afd7f6", "#c8e4f8", "#dfeef8"],
+      "astro": "#ffe48a",
+      "astroSombra": "#ffc95a",
+      "estrella": "#fffaf0",
+      "luciernaga": "#ffe17a",
+      "nucleo": "#fffbea",
+      "halo": "#fff4d0",
+      "reflejo": "#fff7dc"
+    },
+    "tarde": {
+      "bandas": ["#cfb4dc", "#e0b6d6", "#efbdd0", "#f8cbc8", "#fddcc4"],
+      "astro": "#ff9a4d",
+      "astroSombra": "#f2663f",
+      "estrella": "#fffaf0",
+      "luciernaga": "#ffe17a",
+      "nucleo": "#ffd27a",
+      "halo": "#ffc9a0",
+      "reflejo": "#ffd9a8"
+    },
+    "noche": {
+      "bandas": ["#8f96d4", "#9ca3db", "#aab0e3", "#b8bdea", "#c8cbf1"],
+      "astro": "#fffaf0",
+      "astroSombra": "#d9d6ea",
+      "estrella": "#fffaf0",
+      "luciernaga": "#ffe17a",
+      "nucleo": "#ffffff",
+      "halo": "#c3c8f2",
+      "reflejo": "#dfe4ff"
+    }
+  },
+  "pintado": { "tinta": "#2b3a8c", "bruma": "#eef1f8", "lejosClaro": "#cfd9ec", "lejosMedio": "#b3c2de", "rocaLuz": "#9aa5cc", "roca": "#7b88b8", "rocaSombra": "#5d6aa1", "musgoLuz": "#b4d6a6", "musgo": "#8cbd8e", "musgoSombra": "#679d78", "tronco": "#7a5548", "troncoSombra": "#553b3f", "florLuz": "#fde4ec", "flor": "#f6c2d6", "florSombra": "#ea96b6", "florHonda": "#c96a94", "agua": "#a4cde8", "aguaHonda": "#82b3da", "brillo": "#eaf6fd", "pastoLuz": "#bcdba8", "pasto": "#a3cd98", "pastoSombra": "#88b889", "piedra": "#b8b2c6", "koiNaranja": "#f08a3c", "koiRojo": "#d9552f", "koiBlanco": "#fffaf0", "koiOro": "#f5c443", "nube": "#fffdf6", "nubeSombra": "#e1e4f1", "bermellon": "#d84a3a", "bermellonLuz": "#f0705a", "bermellonSombra": "#a83342", "amarilloLuz": "#ffe17a" },
+  "paleta": {
+    "dia": { "tinta": "#2b3a8c", "bruma": "#e8f0f9", "lejosClaro": "#d3e2f4", "lejosMedio": "#b2c9ea", "rocaLuz": "#e8dfd2", "roca": "#c4c6e2", "rocaSombra": "#8f9dd3", "musgoLuz": "#e0f4a2", "musgo": "#aade86", "musgoSombra": "#6dbd84", "tronco": "#9a6a50", "troncoSombra": "#64444a", "florLuz": "#fff0f4", "flor": "#f9c6da", "florSombra": "#ee98ba", "florHonda": "#c96a94", "agua": "#8dd3f7", "aguaHonda": "#5cb0ea", "brillo": "#fffdf2", "pastoLuz": "#e6f5a0", "pasto": "#c2ea90", "pastoSombra": "#8fd08c", "piedra": "#ddd3c2", "koiNaranja": "#f08a3c", "koiRojo": "#d9552f", "koiBlanco": "#fffaf0", "koiOro": "#f5c443", "nube": "#fffdf6", "nubeSombra": "#dde6f6", "bermellon": "#e04e3c", "bermellonLuz": "#f67a62", "bermellonSombra": "#b53a48", "amarilloLuz": "#ffe17a" },
+    "tarde": { "tinta": "#3a3580", "bruma": "#fbe3dc", "lejosClaro": "#e3bfd4", "lejosMedio": "#c9a3c8", "rocaLuz": "#d2aec4", "roca": "#a98fb8", "rocaSombra": "#6f5c95", "musgoLuz": "#c2c592", "musgo": "#9aab82", "musgoSombra": "#748c74", "tronco": "#74483f", "troncoSombra": "#4f343c", "florLuz": "#ffe6e0", "flor": "#fbb9c4", "florSombra": "#ee8aa4", "florHonda": "#c45d86", "agua": "#f0b4c4", "aguaHonda": "#d394b8", "brillo": "#fff1ea", "pastoLuz": "#dcd59a", "pasto": "#a9bd8c", "pastoSombra": "#8ca781", "piedra": "#c2a9bd", "koiNaranja": "#f2843a", "koiRojo": "#d54e30", "koiBlanco": "#fff3e4", "koiOro": "#f7bd45", "nube": "#fff0ee", "nubeSombra": "#f3c6d2", "bermellon": "#d9483e", "bermellonLuz": "#f27a5e", "bermellonSombra": "#a2344a", "amarilloLuz": "#ffd98a" },
+    "noche": { "tinta": "#1f2a6e", "bruma": "#b9bfe6", "lejosClaro": "#8f99d0", "lejosMedio": "#7985c0", "rocaLuz": "#6f7bb6", "roca": "#57639f", "rocaSombra": "#414b85", "musgoLuz": "#6f97ae", "musgo": "#56809c", "musgoSombra": "#426888", "tronco": "#4d4a78", "troncoSombra": "#37345f", "florLuz": "#f3e3f5", "flor": "#d9b3df", "florSombra": "#b088c6", "florHonda": "#8566a8", "agua": "#6f86c8", "aguaHonda": "#5a70b4", "brillo": "#dfe4ff", "pastoLuz": "#7397b2", "pasto": "#6387a6", "pastoSombra": "#527598", "piedra": "#8088bb", "koiNaranja": "#e58a5c", "koiRojo": "#c8605a", "koiBlanco": "#eeeaf6", "koiOro": "#e6c06a", "nube": "#d9d6ea", "nubeSombra": "#b5b6dc", "bermellon": "#9a4a78", "bermellonLuz": "#b8668e", "bermellonSombra": "#6f3566", "amarilloLuz": "#e8dca0" }
+  },
+  "oscuro": {
+    "hacia": "#0d1230",
+    "fondo": 0.62,
+    "tenue": 0.35,
+    "tenues": ["florLuz", "flor", "florSombra", "koiNaranja", "koiRojo", "koiBlanco", "koiOro", "nube", "nubeSombra", "brillo", "bermellon", "bermellonLuz", "amarilloLuz"],
+    "intactos": [],
+    "atenuar": {
+      "dia": {
+        "k": 0.66,
+        "t": 0.1,
+        "kTenue": 0.78,
+        "tTenue": 0.06,
+        "kCielo": 0.52,
+        "tCielo": 0.16,
+        "kAstro": 0.72,
+        "tAstro": 0.04,
+        "intensidad": 0.75,
+        "frio": {
+          "hacia": "#6d7aa8",
+          "t": 0.4,
+          "llaves": ["rocaLuz", "roca", "rocaTibia", "rocaSol", "piedra"]
+        }
+      },
+      "tarde": { "k": 0.58, "t": 0.14, "kTenue": 0.72, "tTenue": 0.08, "kCielo": 0.48, "tCielo": 0.2, "kAstro": 0.72, "tAstro": 0.06, "intensidad": 0.7 }
+    }
+  },
+  "luz": {
+    "cresta": { "montana": 78, "momo": 65 },
+    "escalon": { "roca": "rocaTibia", "rocaLuz": "rocaSol", "musgo": "musgoLuz", "musgoLuz": "musgoSol" },
+    "dia": {
+      "tonos": { "rocaTibia": "#f2e6d4", "rocaSol": "#fbf0dc", "musgoSol": "#d6f0a0" },
+      "sombraLado": { "rocaLuz": "#d3cfdf" },
+      "borde": "#fff1c2",
+      "alfaBanda": 0.25,
+      "anchoBanda": 2,
+      "sombra": "#5571b4",
+      "alfaSombra": 0.2,
+      "alfaNube": 0.08,
+      "escalon": true,
+      "intensidad": 1
+    },
+    "tarde": {
+      "tonos": { "rocaTibia": "#c7a2bf", "rocaSol": "#ecc3b0", "musgoSol": "#d9d49a" },
+      "sombraLado": { "rocaLuz": "#b9a1c4" },
+      "borde": "#ffd9a8",
+      "alfaBanda": 0.3,
+      "anchoBanda": 2,
+      "sombra": "#5a4a96",
+      "alfaSombra": 0.16,
+      "alfaNube": 0.05,
+      "escalon": true,
+      "intensidad": 0.65
+    },
+    "noche": {
+      "tonos": { "rocaTibia": "#57639f", "rocaSol": "#6f7bb6", "musgoSol": "#6f97ae" },
+      "borde": "#dfe4ff",
+      "alfaBanda": 0,
+      "anchoBanda": 0,
+      "sombra": "#1f2a6e",
+      "alfaSombra": 0.1,
+      "alfaNube": 0,
+      "escalon": false,
+      "intensidad": 0.3
+    }
+  },
+  "extras": {
+    "puente": { "archivo": "puente.png", "ancho": 72, "alto": 72, "abajo": 26 },
+    "toro": { "archivo": "toro.png", "ancho": 20, "alto": 36, "cuadros": 2, "abajo": 72 },
+    "hierbas": { "archivo": "hierbas.png", "ancho": 16, "alto": 16, "cuadros": 12, "filas": 2 },
+    "mariposas": { "archivo": "mariposas.png", "ancho": 8, "alto": 8, "cuadros": 4, "filas": 3 },
+    "libelulas": { "archivo": "libelulas.png", "ancho": 12, "alto": 8, "cuadros": 2, "filas": 2 },
+    "aves": { "archivo": "aves.png", "ancho": 16, "alto": 12, "cuadros": 4 },
+    "nubesLejos": { "archivo": "nubes-lejos.png", "ancho": 48, "alto": 12, "cuadros": 4 },
+    "nubesGrandes": { "archivo": "nubes-grandes.png", "ancho": 112, "alto": 40, "cuadros": 2 },
+    "pilas": { "archivo": "pilas.png", "ancho": 16, "alto": 24, "cuadros": 3 },
+    "koiSalto": { "archivo": "koi-salto.png", "ancho": 24, "alto": 16, "cuadros": 6, "filas": 3 },
+    "chapoteo": { "archivo": "chapoteo.png", "ancho": 24, "alto": 12, "cuadros": 5 },
+    "torii": { "archivo": "torii.png", "ancho": 32, "alto": 40 },
+    "komainu": { "archivo": "komainu.png", "ancho": 10, "alto": 14, "cuadros": 2 },
+    "jizo": { "archivo": "jizo.png", "ancho": 6, "alto": 11, "cuadros": 3 },
+    "yukimi": { "archivo": "yukimi.png", "ancho": 16, "alto": 14, "cuadros": 2 },
+    "sekihi": { "archivo": "sekihi.png", "ancho": 8, "alto": 14 },
+    "pagodas": { "archivo": "pagodas.png", "ancho": 16, "alto": 40, "cuadros": 2, "filas": 2 },
+    "sendero": { "archivo": "sendero.png", "ancho": 48, "alto": 20, "abajo": 14 }
+  },
+  "monumentos": {
+    "margen": 4,
+    "piezas": [
+      { "id": "jizo-1", "hoja": "jizo", "cuadro": 0, "ancla": "montana", "x": 30, "abajo": 70, "sombra": true },
+      { "id": "jizo-2", "hoja": "jizo", "cuadro": 1, "ancla": "montana", "x": 37, "abajo": 70, "sombra": true },
+      { "id": "jizo-3", "hoja": "jizo", "cuadro": 2, "ancla": "montana", "x": 57, "abajo": 70, "sombra": true },
+      { "id": "komainu-a", "hoja": "komainu", "cuadro": 0, "ancla": "montana", "x": 67, "abajo": 70, "grupo": "santuario", "sombra": true },
+      { "id": "torii", "hoja": "torii", "ancla": "montana", "x": 79, "abajo": 70, "grupo": "santuario", "sombra": true },
+      { "id": "komainu-un", "hoja": "komainu", "cuadro": 1, "ancla": "montana", "x": 113, "abajo": 70, "grupo": "santuario", "sombra": true },
+      {
+        "id": "yukimi",
+        "hoja": "yukimi",
+        "ancla": "montana",
+        "x": 125,
+        "abajo": 66,
+        "sombra": true,
+        "luz": true,
+        "fuego": [7, 6]
+      },
+      { "id": "sekihi", "hoja": "sekihi", "ancla": "cima", "x": 60 },
+      {
+        "id": "pagoda-alta",
+        "hoja": "pagodas",
+        "cuadro": 0,
+        "ancla": "lejos",
+        "x": 88,
+        "hundir": 1,
+        "luz": true,
+        "fuegos": [[7, 12], [7, 22], [7, 32]]
+      },
+      {
+        "id": "pagoda-baja",
+        "hoja": "pagodas",
+        "cuadro": 1,
+        "ancla": "lejos",
+        "x": 18,
+        "hundir": 1,
+        "luz": true,
+        "fuegos": [[7, 21], [7, 31]]
+      },
+      {
+        "id": "pagoda-lejana",
+        "hoja": "pagodas",
+        "cuadro": 1,
+        "ancla": "lejos",
+        "x": 228,
+        "hundir": 1,
+        "luz": true,
+        "fuegos": [[7, 21], [7, 31]]
+      }
+    ]
+  },
+  "puente": {
+    "placaCss": 352,
+    "margen": 4,
+    "sendero": { "dx": -22 }
+  },
+  "hierbas": {
+    "paso": 9,
+    "mecen": [1, 2, 4, 5, 6, 7, 10],
+    "bandas": [
+      {
+        "nombre": "lejana",
+        "abajo": [74, 77],
+        "densidad": 0.55,
+        "variantes": [1, 2, 10, 10, 6, 7, 8, 4],
+        "detras": true
+      },
+      {
+        "nombre": "orilla",
+        "abajo": [34, 40],
+        "densidad": 0.6,
+        "variantes": [0, 1, 2, 4, 5, 6, 7, 9, 3, 11]
+      },
+      {
+        "nombre": "medio",
+        "abajo": [22, 33],
+        "densidad": 0.22,
+        "variantes": [0, 0, 3, 4, 6, 7, 8]
+      },
+      {
+        "nombre": "pies",
+        "abajo": [2, 18],
+        "densidad": 0.1,
+        "variantes": [0, 3, 0]
+      }
+    ]
+  },
+  "vida": {
+    "mariposas": { "dia": 3, "tarde": 2, "noche": 0 },
+    "libelulas": { "dia": 2, "tarde": 2, "noche": 0 },
+    "aves": { "cadaMs": 40000, "cruceMs": 14000 }
+  },
+  "toro": { "dx": 70 },
+  "pilas": {
+    "lugares": [
+      { "variante": 2, "ancla": "izq", "x": 58, "abajo": 38 },
+      { "variante": 1, "ancla": "puente", "x": 92, "abajo": 73 },
+      { "variante": 0, "ancla": "der", "x": 24, "abajo": 37 }
+    ]
+  },
+  "arcoiris": {
+    "colores": ["#ff6b6b", "#ffa94d", "#ffe066", "#8ce99a", "#74c0fc", "#b197fc"],
+    "alfa": 0.22,
+    "alfaOscuro": 0.1
+  },
+  "saltos": {
+    "cadaMs": [9000, 20000],
+    "nocheFactor": 2,
+    "varado": 0.25,
+    "saltoMs": 900,
+    "alto": 22,
+    "largo": 26,
+    "varadoMs": [2600, 4200],
+    "aleteoMs": 160,
+    "vueltaMs": 650,
+    "chapoteoMs": 90
+  }
+}

@@ -1,4 +1,13 @@
-import { filas, pasos, type Animacion, type EstiloCargado, type NombreAnimacion } from './tipos'
+import {
+  SUPLENTE_MS,
+  UNA_PASADA,
+  filas,
+  pasos,
+  resolverAnimacion,
+  type Animacion,
+  type EstiloCargado,
+  type NombreAnimacion,
+} from './tipos'
 
 /**
  * Reproductor de una capa: pinta un cuadro de una hoja o secuencia en un
@@ -6,6 +15,11 @@ import { filas, pasos, type Animacion, type EstiloCargado, type NombreAnimacion 
  * recibe un EstiloCargado y un nombre de animación. Sólo toca `backgroundImage`,
  * `backgroundSize` y `backgroundPosition`, y únicamente cuando cambia el cuadro
  * (~10 veces por segundo); no hay rAF ni trabajo entre cuadros.
+ *
+ * Si el estilo no trae la animación pedida (colgar, caer, jugar, reaccion de un
+ * animal aún sin redibujar) reproduce `reposo` en su lugar; y si la pedida era
+ * de una pasada, igual avisa `impacto` y `alTerminar` a los tiempos suplentes,
+ * para que quien espera el final no se quede colgado.
  */
 
 export type OpcionesReproduccion = {
@@ -26,6 +40,9 @@ export class Reproductor {
   private anim: Animacion | null = null
   private estilo: EstiloCargado | null = null
   private nombre: NombreAnimacion | null = null
+  /** La que de verdad se pinta (la pedida o su suplente). */
+  private real: NombreAnimacion = 'reposo'
+  private tSuplente: number[] = []
   private opc: OpcionesReproduccion = {}
   private corriendo = false
 
@@ -50,12 +67,18 @@ export class Reproductor {
     this.detener()
     this.estilo = estilo
     this.nombre = nombre
-    this.anim = estilo.manifiesto.animaciones[nombre]
+    this.real = resolverAnimacion(estilo, nombre)
+    this.anim = estilo.manifiesto.animaciones[this.real]!
     this.opc = opc
     this.el.style.imageRendering = estilo.manifiesto.render === 'pixelado' ? 'pixelated' : 'auto'
     this.paso = opc.reducido ? (this.anim.fijo ?? 0) : 0
     this.pintar()
     if (opc.reducido) return
+    if (this.real !== nombre && UNA_PASADA.includes(nombre)) {
+      const fin = nombre === 'poof' ? 0 : SUPLENTE_MS[nombre as Exclude<keyof typeof SUPLENTE_MS, 'impacto' | 'giro' | 'impulso'>]
+      if (nombre === 'jugar') this.tSuplente.push(window.setTimeout(() => opc.alMarca?.('impacto'), SUPLENTE_MS.impacto))
+      this.tSuplente.push(window.setTimeout(() => opc.alTerminar?.(), fin))
+    }
     this.corriendo = true
     this.meta = performance.now() + this.anim.duraciones[0]
     this.marcar()
@@ -65,6 +88,8 @@ export class Reproductor {
   detener() {
     this.corriendo = false
     window.clearTimeout(this.temporizador)
+    this.tSuplente.forEach((t) => window.clearTimeout(t))
+    this.tSuplente = []
   }
 
   private alCambiarVista = () => {
@@ -118,7 +143,7 @@ export class Reproductor {
     const f = a.fuente
     const estilo = this.el.style
     this.opc.alPaso?.(this.paso, cuadro)
-    estilo.backgroundImage = `url("${this.estilo!.urls[this.nombre!][cuadro]}")`
+    estilo.backgroundImage = `url("${this.estilo!.urls[this.real]![cuadro]}")`
     if (f.tipo === 'hoja') {
       const nf = filas(f)
       const c = cuadro % f.columnas

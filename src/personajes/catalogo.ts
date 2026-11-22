@@ -1,4 +1,4 @@
-import type { Animal, EstiloArte, EstiloCargado, Manifiesto, NombreAnimacion } from './tipos'
+import type { Animacion, Animal, EstiloArte, EstiloCargado, Manifiesto, NombreAnimacion } from './tipos'
 
 /**
  * Carga perezosa de los recursos: los manifiestos (diminutos) entran con el
@@ -24,6 +24,12 @@ export const estilosDe = (animal: Animal): EstiloArte[] =>
 /** ¿Ya hay arte de este animal en este estilo? Los monitos sin hojas siguen con su piel SVG. */
 export const tieneArte = (animal: Animal, estilo: EstiloArte): boolean => estilosDe(animal).includes(estilo)
 
+/** El manifiesto de un estilo, si existe (los tiempos del motor salen de aquí). */
+export const manifiestoDe = (animal: Animal, estilo: EstiloArte): Manifiesto | undefined =>
+  manifiestos[`${base(animal, estilo)}/manifiesto.json`]
+
+const BASE: readonly NombreAnimacion[] = ['reposo', 'dormir', 'caminar']
+
 const cache = new Map<string, Promise<EstiloCargado>>()
 
 function decodificar(url: string): Promise<void> {
@@ -45,8 +51,8 @@ export function cargarEstilo(animal: Animal, estilo: EstiloArte): Promise<Estilo
     const m = manifiestos[`${base(animal, estilo)}/manifiesto.json`]
     if (!m) throw new Error(`Sin manifiesto para ${clave}`)
 
-    const urls = {} as Record<NombreAnimacion, string[]>
-    for (const [nombre, anim] of Object.entries(m.animaciones) as [NombreAnimacion, Manifiesto['animaciones'][NombreAnimacion]][]) {
+    const urls: EstiloCargado['urls'] = {}
+    for (const [nombre, anim] of Object.entries(m.animaciones) as [NombreAnimacion, Animacion][]) {
       const f = anim.fuente
       const archivos =
         f.tipo === 'hoja'
@@ -54,15 +60,21 @@ export function cargarEstilo(animal: Animal, estilo: EstiloArte): Promise<Estilo
           : Array.from({ length: f.cuadros }, (_, i) =>
               f.patron.replace('{n}', String(i).padStart(f.digitos, '0')),
             )
-      const resueltas = await Promise.all(
-        archivos.map(async (a) => {
-          const carga = imagenes[`${base(animal, estilo)}/${a}`]
-          if (!carga) throw new Error(`Falta ${clave}/${a}`)
-          return carga()
-        }),
-      )
-      await Promise.all(resueltas.map(decodificar))
-      urls[nombre] = f.tipo === 'hoja' ? Array(f.cuadros).fill(resueltas[0]) : resueltas
+      try {
+        const resueltas = await Promise.all(
+          archivos.map(async (a) => {
+            const carga = imagenes[`${base(animal, estilo)}/${a}`]
+            if (!carga) throw new Error(`Falta ${clave}/${a}`)
+            return carga()
+          }),
+        )
+        await Promise.all(resueltas.map(decodificar))
+        urls[nombre] = f.tipo === 'hoja' ? Array(f.cuadros).fill(resueltas[0]) : resueltas
+      } catch (e) {
+        // Una animación opcional sin su hoja (arte a medio entregar) no bota al
+        // personaje: queda sin URL y el reproductor pone el suplente.
+        if (BASE.includes(nombre)) throw e
+      }
     }
     return { manifiesto: m, urls }
   })()

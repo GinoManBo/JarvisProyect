@@ -7,7 +7,17 @@ import { join, dirname } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..', 'recursos', 'personajes')
-const ANCLA_Y = 120 // de 128
+const ANCLA_Y = 120 // de 128 (y = 60 en la celda de 64)
+const AGARRE_Y = 8 / 64 // punto de agarre de `colgar`: (32, 8) en la celda de 64
+const BASE = ['reposo', 'dormir', 'caminar'] // obligatorias
+const JUEGO = ['colgar', 'caer', 'jugar', 'reaccion'] // opcionales (contrato .ui-pipeline/05-monitos-juego.md)
+const GATO = ['trepar', 'voltereta', 'tendido'] // opcionales, hoy sólo del gatito (ampliación del contrato)
+const AGARRE_TREPAR_Y = 6 / 64 // `trepar`: las patas delanteras, (32, 6), van en el borde del marco
+const APPA = ['planear', 'virar', 'despertar', 'despegar'] // opcionales, hoy sólo de Appa (§6 del contrato)
+const MARCA_APPA = { virar: 'giro', despegar: 'impulso' } // la marca que el motor espera en cada una
+const UNA_PASADA = ['caer', 'jugar', 'reaccion', 'tendido', 'virar', 'despertar', 'despegar', 'poof']
+const CONOCIDAS = [...BASE, ...JUEGO, ...GATO, ...APPA, 'poof']
+const mediana = (v) => [...v].sort((a, b) => a - b)[Math.floor(v.length / 2)]
 let errores = 0
 let avisos = 0
 const err = (m) => (errores++, console.log(`  ✗ ${m}`))
@@ -84,7 +94,17 @@ for (const animal of readdirSync(RAIZ, { withFileTypes: true }).filter((d) => d.
     if (m.animal !== animal.name || m.estilo !== est.name) err('animal/estilo del manifiesto no coincide con la carpeta')
     if (!(128 % px === 0 || px % 128 === 0)) err(`celdaPx ${px} debe dividir o ser múltiplo de 128`)
     if (m.render === 'pixelado' && (px > 128 || 128 % px)) err('pixel art: celdaPx debe dividir 128 (64, 32…)')
-    for (const nombre of ['reposo', 'dormir', 'caminar', 'poof']) if (!m.animaciones[nombre]) err(`falta la animación ${nombre}`)
+    for (const nombre of BASE) if (!m.animaciones[nombre]) err(`falta la animación ${nombre}`)
+    if (!m.animaciones.poof) aviso('sin poof: no podrá transformarse a este estilo con nube')
+    const faltan = JUEGO.filter((n) => !m.animaciones[n])
+    if (faltan.length) aviso(`sin ${faltan.join(', ')}: el motor muestra reposo en su lugar`)
+    const faltanGato = GATO.filter((n) => !m.animaciones[n])
+    if (animal.name === 'gatito' && m.render === 'pixelado' && faltanGato.length)
+      aviso(`sin ${faltanGato.join(', ')}: el motor pone suplentes (trepar→colgar, voltereta→colgar, tendido→reposo)`)
+    const faltanAppa = APPA.filter((n) => !m.animaciones[n])
+    if (animal.name === 'appa' && m.render === 'pixelado' && faltanAppa.length)
+      aviso(`sin ${faltanAppa.join(', ')}: el motor pone suplentes (planear→caminar, virar→planear, despertar/despegar→reposo)`)
+    const lomo = {} // altura del lomo por animación, para RASGOS.lomo del motor
 
     for (const [nombre, a] of Object.entries(m.animaciones)) {
       const f = a.fuente
@@ -93,7 +113,24 @@ for (const animal of readdirSync(RAIZ, { withFileTypes: true }).filter((d) => d.
       if (a.duraciones.some((d) => !(d >= 16))) err(`${nombre}: duración menor a 16 ms (un fotograma de pantalla)`)
       if (a.orden?.some((c) => !Number.isInteger(c) || c < 0 || c >= f.cuadros)) err(`${nombre}: orden fuera de rango`)
       if (a.fijo != null && !(a.fijo >= 0 && a.fijo < n)) err(`${nombre}: fijo fuera de rango`)
-      if (!a.bucle && nombre !== 'poof') aviso(`${nombre}: sin bucle y sin destino; hoy sólo poof es de una pasada`)
+      if (!CONOCIDAS.includes(nombre)) aviso(`${nombre}: animación desconocida, nadie la reproduce`)
+      else if (UNA_PASADA.includes(nombre) ? a.bucle : !a.bucle)
+        err(`${nombre}: debe ser ${UNA_PASADA.includes(nombre) ? 'de una pasada (bucle: false)' : 'bucle'}`)
+      if (nombre === 'jugar') {
+        const impacto = a.marcas?.impacto
+        if (impacto == null) aviso('jugar: sin marca impacto; el motor la supone al 60 % de la jugada')
+        else if (!(Number.isInteger(impacto) && impacto >= 0 && impacto < n)) err('jugar: marca impacto fuera de rango')
+      }
+      if (MARCA_APPA[nombre]) {
+        const marca = a.marcas?.[MARCA_APPA[nombre]]
+        if (marca == null) aviso(`${nombre}: sin marca ${MARCA_APPA[nombre]}; el motor supone un tiempo`)
+        else if (!(Number.isInteger(marca) && marca >= 0 && marca < n)) err(`${nombre}: marca ${MARCA_APPA[nombre]} fuera de rango`)
+      }
+      // Pixel: una sola fila por hoja. Las nuevas la exigen; las heredadas avisan.
+      if (m.render === 'pixelado' && f.tipo === 'hoja' && f.columnas !== f.cuadros && nombre !== 'poof') {
+        if (JUEGO.includes(nombre) || GATO.includes(nombre) || APPA.includes(nombre)) err(`${nombre}: la hoja debe ser de una sola fila (columnas = cuadros)`)
+        else aviso(`${nombre}: hoja heredada de varias filas (${f.columnas} columnas, ${f.cuadros} cuadros); el contrato nuevo pide una fila`)
+      }
       if (nombre === 'poof') {
         const { cubre, libera } = a.marcas ?? {}
         if (cubre == null || libera == null) err('poof: faltan marcas cubre/libera')
@@ -115,24 +152,48 @@ for (const animal of readdirSync(RAIZ, { withFileTypes: true }).filter((d) => d.
         const al = alfa(p)
         for (let i = 0; i < c.n; i++) {
           const ox = (i % c.cols) * px, oy = Math.floor(i / c.cols) * px
-          let borde = 0, base = -1, opacos = 0
+          let borde = 0, base = -1, tope = px, opacos = 0
+          const topes = [] // por columna, la primera fila con dibujo
           for (let y = 0; y < px; y++)
             for (let x = 0; x < px; x++) {
               const v = al[(oy + y) * p.w + ox + x]
-              if (v > 8) { opacos++; if (x === 0 || y === 0 || x === px - 1 || y === px - 1) borde++; base = Math.max(base, y) }
+              if (v > 8) { opacos++; if (x === 0 || y === 0 || x === px - 1 || y === px - 1) borde++; base = Math.max(base, y); tope = Math.min(tope, y); topes[x] = Math.min(topes[x] ?? px, y) }
             }
           const id = c.n > 1 ? `${c.ruta}[${i}]` : c.ruta
           if (!opacos) { aviso(`${id}: cuadro vacío`); continue }
           if (opacos === px * px) err(`${id}: sin transparencia (fondo opaco)`)
           if (borde) err(`${id}: el dibujo toca el borde de la celda (${borde} px) — se recorta`)
-          if (nombre !== 'poof') {
-            const sueloPx = (ANCLA_Y / 128) * px
-            if (base < sueloPx - 0.06 * px) aviso(`${id}: nada apoya cerca del suelo (último píxel en y=${base}, suelo ${sueloPx})`)
+          const sueloPx = (ANCLA_Y / 128) * px
+          if (m.render === 'pixelado' && (nombre === 'reposo' || nombre === 'dormir')) {
+            // El lomo: en reposo, la mitad trasera (mira a +x, la cabeza va adelante);
+            // dormido, el centro del ovillo. Mediana de la silueta, sin orejas ni cola.
+            const xs = Object.keys(topes).map(Number)
+            const x0 = Math.min(...xs), x1 = Math.max(...xs)
+            const zona = xs.filter((x) => (nombre === 'reposo' ? x > x0 + 2 && x < (x0 + x1) / 2 : Math.abs(x - (x0 + x1) / 2) <= (x1 - x0) / 4))
+            if (zona.length) (lomo[nombre] ??= []).push((sueloPx - mediana(zona.map((x) => topes[x]))) / px)
+          }
+          if (nombre === 'trepar') {
+            const agarre = AGARRE_TREPAR_Y * px
+            if (tope > agarre + 0.06 * px) aviso(`${id}: las patas no llegan al borde (primer píxel en y=${tope}, agarre ${agarre})`)
+          } else if (nombre === 'voltereta' || nombre === 'planear' || nombre === 'virar') {
+            // En el aire (la voltereta gira alrededor de (32, 34); Appa planea y vira): no se les pide suelo.
+            if (base > sueloPx + 0.04 * px) aviso(`${id}: se pasa del suelo (y=${base} > ${sueloPx})`)
+          } else if (nombre === 'colgar') {
+            // Cuelga del punto de agarre: el dibujo debe empezar cerca de él, no del suelo.
+            const agarre = AGARRE_Y * px
+            if (tope > agarre + 0.12 * px) aviso(`${id}: empieza lejos del punto de agarre (primer píxel en y=${tope}, agarre ${agarre})`)
+          } else if (nombre !== 'poof') {
+            // En jugar y reaccion hay cuadros en el aire (saltos): sólo se exige no pasarse.
+            // …y en despegar, los cuadros desde la marca `impulso` ya van en el aire.
+            const aerea = nombre === 'jugar' || nombre === 'reaccion' || (nombre === 'despegar' && i >= (a.marcas?.impulso ?? 0))
+            if (!aerea && base < sueloPx - 0.06 * px) aviso(`${id}: nada apoya cerca del suelo (último píxel en y=${base}, suelo ${sueloPx})`)
             if (base > sueloPx + 0.04 * px) aviso(`${id}: se pasa del suelo (y=${base} > ${sueloPx})`)
           }
         }
       }
     }
+    if (lomo.reposo || lomo.dormir)
+      console.log(`  · lomo (fracción de la caja sobre el suelo, para RASGOS en motor.ts): ${['reposo', 'dormir'].map((n) => `${n} ${lomo[n] ? mediana(lomo[n]).toFixed(2) : '–'}`).join(' · ')}`)
   }
 }
 console.log(`\n${errores} error(es), ${avisos} aviso(s)`)

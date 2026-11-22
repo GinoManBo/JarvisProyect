@@ -100,47 +100,50 @@ export default function Descanso() {
           </div>
         </div>
 
-        <div className="reloj__mandos">
-          <button className="btn btn--fuerte" onClick={alternar}>
-            {corriendo ? 'Pausar' : restante === total ? 'Empezar' : 'Seguir'}
-          </button>
-          <button className="btn" onClick={reiniciar}>
-            Reiniciar
-          </button>
-          <button className="btn" onClick={saltar}>
-            Saltar
-          </button>
-        </div>
+        {/* Placa de vidrio: los mandos quedan sobre el agua de la escena. */}
+        <div className="reloj__placa">
+          <div className="reloj__mandos">
+            <button className="btn btn--fuerte" onClick={alternar}>
+              {corriendo ? 'Pausar' : restante === total ? 'Empezar' : 'Seguir'}
+            </button>
+            <button className="btn" onClick={reiniciar}>
+              Reiniciar
+            </button>
+            <button className="btn" onClick={saltar}>
+              Saltar
+            </button>
+          </div>
 
-        <div className="tiempos">
-          <Tiempo
-            rotulo="Estudio"
-            valor={cfg.minutosFoco}
-            min={1}
-            max={180}
-            onPoner={(v) => cambiarCfg({ minutosFoco: v })}
-          />
-          <span className="tiempos__sep" />
-          <Tiempo
-            rotulo="Descanso"
-            valor={cfg.minutosPausaCorta}
-            min={1}
-            max={60}
-            onPoner={(v) => cambiarCfg({ minutosPausaCorta: v })}
-          />
-        </div>
+          <div className="tiempos">
+            <Tiempo
+              rotulo="Estudio"
+              valor={cfg.minutosFoco}
+              min={1}
+              max={180}
+              onPoner={(v) => cambiarCfg({ minutosFoco: v })}
+            />
+            <span className="tiempos__sep" />
+            <Tiempo
+              rotulo="Descanso"
+              valor={cfg.minutosPausaCorta}
+              min={1}
+              max={60}
+              onPoner={(v) => cambiarCfg({ minutosPausaCorta: v })}
+            />
+          </div>
 
-        <div className="reloj__cuenta">
-          {hechos > 0 && (
-            <>
-              {Array.from({ length: Math.min(hechos, 12) }, (_, i) => (
-                <span key={i} className="tomate tomate--lleno" />
-              ))}
-              <span style={{ marginLeft: 4 }}>
-                {hechos} {hechos === 1 ? 'bloque hoy' : 'bloques hoy'}
-              </span>
-            </>
-          )}
+          <div className="reloj__cuenta">
+            {hechos > 0 && (
+              <>
+                {Array.from({ length: Math.min(hechos, 12) }, (_, i) => (
+                  <span key={i} className="tomate tomate--lleno" />
+                ))}
+                <span style={{ marginLeft: 4 }}>
+                  {hechos} {hechos === 1 ? 'bloque hoy' : 'bloques hoy'}
+                </span>
+              </>
+            )}
+          </div>
         </div>
 
         <Monitos animo={animo} />

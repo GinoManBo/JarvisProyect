@@ -16,7 +16,13 @@ import { ANCLA, LIENZO, type EstiloArte, type NombreAnimacion } from './tipos'
  */
 
 type Anim = Exclude<NombreAnimacion, 'poof'>
-const ANIMO: Record<Anim, Animo> = { reposo: 'estudia', caminar: 'recreo', dormir: 'siesta' }
+const ANIMO: Record<Anim, Animo> = {
+  reposo: 'estudia', caminar: 'recreo', dormir: 'siesta',
+  // Las del juego no existen en las pieles SVG: se comparan con la pose más cercana.
+  colgar: 'recreo', caer: 'recreo', jugar: 'recreo', reaccion: 'estudia',
+  trepar: 'recreo', voltereta: 'recreo', tendido: 'siesta',
+  planear: 'recreo', virar: 'recreo', despertar: 'estudia', despegar: 'recreo',
+}
 
 const q = new URLSearchParams(location.search)
 document.documentElement.dataset.tema = q.get('tema') || 'claro'
@@ -63,6 +69,10 @@ function Demo() {
         <label>animación
           <select value={anim} onChange={(e) => setAnim(e.target.value as Anim)}>
             <option value="reposo">reposo</option><option value="caminar">caminar</option><option value="dormir">dormir</option>
+            <option value="colgar">colgar</option><option value="caer">caer</option>
+            <option value="jugar">jugar</option><option value="reaccion">reacción</option>
+            <option value="trepar">trepar</option><option value="voltereta">voltereta</option>
+            <option value="tendido">tendido</option>
           </select>
         </label>
         <label>tamaño

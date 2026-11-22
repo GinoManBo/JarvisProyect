@@ -6,26 +6,68 @@
   "celdaPx": 64,
   "animaciones": {
     "reposo": {
-      "fuente": { "tipo": "hoja", "archivo": "reposo.png", "columnas": 3, "cuadros": 6 },
-      "duraciones": [800, 300, 600, 110, 400, 400],
+      "fuente": { "tipo": "hoja", "archivo": "reposo.png", "columnas": 6, "cuadros": 6 },
+      "duraciones": [700, 400, 500, 110, 320, 320],
+      "bucle": true,
+      "fijo": 0
+    },
+    "caminar": {
+      "fuente": { "tipo": "hoja", "archivo": "caminar.png", "columnas": 8, "cuadros": 8 },
+      "duraciones": [150, 100, 150, 100, 150, 100, 150, 100],
       "bucle": true,
       "fijo": 0
     },
     "dormir": {
       "fuente": { "tipo": "hoja", "archivo": "dormir.png", "columnas": 4, "cuadros": 4 },
-      "orden": [0, 1, 2, 3, 2, 1],
-      "duraciones": [700, 500, 500, 700, 500, 500],
+      "duraciones": [700, 500, 600, 800],
       "bucle": true,
       "fijo": 0
     },
-    "caminar": {
-      "fuente": { "tipo": "hoja", "archivo": "caminar.png", "columnas": 4, "cuadros": 8 },
-      "duraciones": [110, 110, 110, 110, 110, 110, 110, 110],
+    "colgar": {
+      "fuente": { "tipo": "hoja", "archivo": "colgar.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [260, 140, 260, 140],
       "bucle": true,
       "fijo": 0
+    },
+    "caer": {
+      "fuente": { "tipo": "hoja", "archivo": "caer.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [60, 130, 90, 180],
+      "bucle": false,
+      "fijo": 3
+    },
+    "jugar": {
+      "fuente": { "tipo": "hoja", "archivo": "jugar.png", "columnas": 8, "cuadros": 8 },
+      "duraciones": [240, 90, 90, 90, 140, 80, 130, 220],
+      "bucle": false,
+      "fijo": 7,
+      "marcas": { "impacto": 6 }
+    },
+    "reaccion": {
+      "fuente": { "tipo": "hoja", "archivo": "reaccion.png", "columnas": 5, "cuadros": 5 },
+      "duraciones": [70, 150, 90, 120, 240],
+      "bucle": false,
+      "fijo": 4
+    },
+    "trepar": {
+      "fuente": { "tipo": "hoja", "archivo": "trepar.png", "columnas": 5, "cuadros": 5 },
+      "duraciones": [240, 140, 160, 140, 220],
+      "bucle": true,
+      "fijo": 0
+    },
+    "voltereta": {
+      "fuente": { "tipo": "hoja", "archivo": "voltereta.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [90, 90, 90, 90],
+      "bucle": true,
+      "fijo": 0
+    },
+    "tendido": {
+      "fuente": { "tipo": "hoja", "archivo": "tendido.png", "columnas": 8, "cuadros": 8 },
+      "duraciones": [100, 380, 380, 380, 380, 320, 180, 280],
+      "bucle": false,
+      "fijo": 1
     },
     "poof": {
-      "fuente": { "tipo": "hoja", "archivo": "poof.png", "columnas": 4, "cuadros": 8 },
+      "fuente": { "tipo": "hoja", "archivo": "poof.png", "columnas": 8, "cuadros": 8 },
       "duraciones": [60, 60, 60, 90, 90, 70, 70, 80],
       "bucle": false,
       "marcas": { "cubre": 2, "libera": 4 }

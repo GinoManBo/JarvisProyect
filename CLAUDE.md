@@ -68,6 +68,66 @@ also why the running clock shows in the navbar (`RelojBarra`). Changing the minu
 stops the clock and resets the current block: settings apply immediately, never behind
 a Save button.
 
+**The monitos are a small game engine, not CSS.** The seven animals at the bottom of
+Descanso are driven by `src/personajes/motor.ts` — pure logic, no DOM, no React: per
+animal an x, a height above the ground, a velocity and a state (`reposo`, `caminar`,
+`dormir`, `colgar`, `trepar`, `caer`, `jugar`, `reaccion`), plus personality in `RASGOS`
+(speed, gait, home spot, back height). `src/views/Monitos.tsx` only measures the area,
+calls `avanzar()` in one `requestAnimationFrame` loop and writes `transform` through
+refs; React state changes only when an animal's *animation* changes. The loop stops
+when nothing can move (everyone asleep, or reduced motion). There used to be a CSS
+patrol (`mono__paseo`, lanes in `%`); it is gone, and nothing in CSS positions an
+animal any more. Animals can be picked up with the pointer (only `.mono__agarre` takes
+clicks; the rest of the area is `pointer-events: none`), thrown, and they land with
+gravity. Games — two-animal scripts that advance by phases — run only in `recreo`, at
+most two at once, each with its own cooldown; the cat's extras (climbing the top edge
+of the area, getting scared by the dog, sleeping on another animal's back) are games
+too. `estudia` is calm, `siesta` sends everyone home to sleep, and
+`prefers-reduced-motion` disables everything autonomous but keeps the drag.
+
+Appa has its own three states on top of that: `bajar` (in siesta it does not drop
+straight down — it descends like a falling leaf, lateral sweeps that narrow to zero,
+playing `planear` and, at each extreme, `virar`, whose `giro` mark is where the engine
+flips it), and `despertar` → `despegar` whenever it leaves sleep (it stretches and yawns
+on the ground, crouches, and is launched upward at the `impulso` mark). The engine reads
+those mark times from the manifest (`tiemposDe`); it never hears back from the player.
+The view also measures the heading, the timer disc and the controls plate and hands them
+to the engine as `mu.zonas`: Appa cruises above the heading, changes height only beside
+that column, and nothing autonomous picks a spot over them (dropped animals still fall
+anywhere).
+
+The hollow rock (`mu.piedra`, art in `recursos/objetos/piedra/`, loader in
+`src/personajes/piedra.ts`, view in `src/views/Piedra.tsx`) is a map object, not an
+animal, with its own small state machine in `avanzarPiedra`. The cuy hides in it — for
+fun in recreo, to sleep in siesta, when startled, or when dropped onto it — and while
+inside it is in state `escondido`: not painted, not grabbable, carried by the rock. The
+pointer can hover it (the cuy peeks), click it (it wobbles; an occupant squeaks and
+bolts) and drag it (it falls with gravity, occupant included).
+
+Every animal and the rock cast a ground shadow: two hard-edged stepped ellipses
+(`.sombra`, colour `--sombra-escena`, no blur) that are siblings of the `.mono` boxes so
+they stay on the ground, positioned through refs in the same loop. The cast one is
+stretched away from the light that the background publishes in `src/lib/sol.ts`; both
+shrink and fade with the animal's height.
+
+The sprites are 64 px Aseprite sheets under `recursos/personajes/<animal>/pixel/`, one
+strip per animation plus a `manifiesto.json`; `src/personajes/` plays them
+(`reproductor.ts`, `Personaje.tsx`, `catalogo.ts`). The contract between art and engine
+— animation names, anchor (32, 60), grab points, the `impacto` mark, who plays with
+whom — is `.ui-pipeline/05-monitos-juego.md`, and `recursos/personajes/ESPECIFICACION.md`
+is the file-format side of it. `node scripts/validar-personajes.mjs` checks the sheets
+against both. A missing optional animation never throws: the player substitutes
+(`resolverAnimacion`) and the engine uses `SUPLENTE_MS` timings. The SVG skins
+(`MonitosPluma/Plumon/Timbre.tsx`) remain only as the fallback for an animal without a
+pixel manifest; today all seven have one.
+
+**The Descanso background is a layered pixel scene.** `src/views/Fondo.tsx` picks it:
+the mountain (`Montana.tsx` + `montanaArte.ts`, PNG layers from
+`recursos/fondo/montana/` composed on a low-resolution canvas, sky drawn by code) when
+its art is complete, otherwise the older code-drawn meadow (`Pradera.tsx`). The art
+contract is `.ui-pipeline/06-fondo-montana.md`. Like the sprites, its palette is pixel
+art, not design tokens.
+
 **Malla.** `src/lib/malla.ts` holds the 61 blocks of the law degree (5 years, 10
 semesters) as static data; the block id is the slug of its name, and that id is the
 key into the `malla` collection — renaming a subject orphans its saved state. Each

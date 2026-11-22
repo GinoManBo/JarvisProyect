@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "animal": "appa",
+  "estilo": "pixel",
+  "render": "pixelado",
+  "celdaPx": 64,
+  "animaciones": {
+    "reposo": {
+      "fuente": { "tipo": "hoja", "archivo": "reposo.png", "columnas": 6, "cuadros": 6 },
+      "duraciones": [700, 400, 500, 110, 400, 350],
+      "bucle": true,
+      "fijo": 0
+    },
+    "caminar": {
+      "fuente": { "tipo": "hoja", "archivo": "caminar.png", "columnas": 8, "cuadros": 8 },
+      "duraciones": [120, 110, 120, 110, 120, 110, 120, 110],
+      "bucle": true,
+      "fijo": 0
+    },
+    "dormir": {
+      "fuente": { "tipo": "hoja", "archivo": "dormir.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [800, 600, 700, 900],
+      "bucle": true,
+      "fijo": 0
+    },
+    "colgar": {
+      "fuente": { "tipo": "hoja", "archivo": "colgar.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [400, 300, 400, 300],
+      "bucle": true,
+      "fijo": 0
+    },
+    "caer": {
+      "fuente": { "tipo": "hoja", "archivo": "caer.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [70, 140, 100, 180],
+      "bucle": false,
+      "fijo": 3
+    },
+    "jugar": {
+      "fuente": { "tipo": "hoja", "archivo": "jugar.png", "columnas": 8, "cuadros": 8 },
+      "duraciones": [140, 170, 110, 140, 110, 120, 130, 160],
+      "bucle": false,
+      "fijo": 7,
+      "marcas": { "impacto": 3 }
+    },
+    "reaccion": {
+      "fuente": { "tipo": "hoja", "archivo": "reaccion.png", "columnas": 5, "cuadros": 5 },
+      "duraciones": [80, 160, 200, 140, 180],
+      "bucle": false,
+      "fijo": 2
+    },
+    "planear": {
+      "fuente": { "tipo": "hoja", "archivo": "planear.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [140, 110, 140, 110],
+      "bucle": true,
+      "fijo": 0
+    },
+    "virar": {
+      "fuente": { "tipo": "hoja", "archivo": "virar.png", "columnas": 5, "cuadros": 5 },
+      "duraciones": [110, 90, 90, 90, 120],
+      "bucle": false,
+      "fijo": 2,
+      "marcas": { "giro": 2 }
+    },
+    "despertar": {
+      "fuente": { "tipo": "hoja", "archivo": "despertar.png", "columnas": 8, "cuadros": 8 },
+      "duraciones": [320, 240, 160, 420, 380, 300, 170, 220],
+      "bucle": false,
+      "fijo": 7
+    },
+    "despegar": {
+      "fuente": { "tipo": "hoja", "archivo": "despegar.png", "columnas": 6, "cuadros": 6 },
+      "duraciones": [150, 140, 280, 90, 110, 130],
+      "bucle": false,
+      "fijo": 5,
+      "marcas": { "impulso": 3 }
+    },
+    "poof": {
+      "fuente": { "tipo": "hoja", "archivo": "poof.png", "columnas": 8, "cuadros": 8 },
+      "duraciones": [60, 60, 60, 90, 90, 70, 70, 80],
+      "bucle": false,
+      "marcas": { "cubre": 2, "libera": 4 }
+    }
+  }
+}

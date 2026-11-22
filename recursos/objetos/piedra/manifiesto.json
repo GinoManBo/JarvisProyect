@@ -1,0 +1,57 @@
+{
+  "version": 1,
+  "objeto": "piedra",
+  "render": "pixelado",
+  "celdaPx": 64,
+  "boca": { "x": 41, "y": 60 },
+  "animaciones": {
+    "vacia": {
+      "fuente": { "tipo": "hoja", "archivo": "vacia.png", "columnas": 2, "cuadros": 2 },
+      "duraciones": [2600, 600],
+      "bucle": true,
+      "fijo": 0
+    },
+    "entra": {
+      "fuente": { "tipo": "hoja", "archivo": "entra.png", "columnas": 5, "cuadros": 5 },
+      "duraciones": [110, 110, 100, 140, 300],
+      "bucle": false,
+      "fijo": 4
+    },
+    "dentro": {
+      "fuente": { "tipo": "hoja", "archivo": "dentro.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [1600, 1100, 120, 900],
+      "bucle": true,
+      "fijo": 0
+    },
+    "duerme": {
+      "fuente": { "tipo": "hoja", "archivo": "duerme.png", "columnas": 3, "cuadros": 3 },
+      "duraciones": [1200, 900, 1100],
+      "bucle": true,
+      "fijo": 1
+    },
+    "asoma": {
+      "fuente": { "tipo": "hoja", "archivo": "asoma.png", "columnas": 5, "cuadros": 5 },
+      "duraciones": [220, 160, 700, 600, 220],
+      "bucle": false,
+      "fijo": 2
+    },
+    "sale": {
+      "fuente": { "tipo": "hoja", "archivo": "sale.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [160, 110, 110, 200],
+      "bucle": false,
+      "fijo": 3
+    },
+    "toque": {
+      "fuente": { "tipo": "hoja", "archivo": "toque.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [80, 90, 80, 120],
+      "bucle": false,
+      "fijo": 3
+    },
+    "chillido": {
+      "fuente": { "tipo": "hoja", "archivo": "chillido.png", "columnas": 4, "cuadros": 4 },
+      "duraciones": [90, 100, 90, 300],
+      "bucle": false,
+      "fijo": 3
+    }
+  }
+}

@@ -31,11 +31,16 @@
   --mono: 'SF Mono', ui-monospace, 'JetBrains Mono', 'Menlo', 'Roboto Mono', monospace;
 
   --sombra: 0 1px 2px rgba(22, 24, 29, 0.04), 0 8px 24px -12px rgba(22, 24, 29, 0.12);
+  --sombra-escena: #1f2a66; /* la sombra que los monitos echan en el suelo de Descanso */
   --paso: 160ms cubic-bezier(0.2, 0, 0.2, 1);
 
   /* Vidrio: papel esmerilado. Los paneles dejan pasar el fondo con blur. */
   --vidrio: rgba(250, 249, 246, 0.62);
   --vidrio-borde: rgba(255, 255, 255, 0.55);
+  /* Vidrio más cargado, para lo que va sobre la escena del Descanso: su fondo
+     es arte saturado (cielo, bruma, agua), no papel, y el vidrio común no
+     alcanza a sostener una etiqueta chica. */
+  --vidrio-escena: rgba(250, 249, 246, 0.78);
   /* Los dos tintes del fondo ambiental que el vidrio refracta. */
   --tinte-azul: rgba(43, 58, 140, 0.07);
   --tinte-rosa: rgba(246, 194, 214, 0.28);
@@ -71,9 +76,11 @@
   --marca-azul: #2b4a75;
 
   --sombra: 0 1px 2px rgba(0, 0, 0, 0.4), 0 8px 24px -12px rgba(0, 0, 0, 0.7);
+  --sombra-escena: #070a1c;
 
   --vidrio: rgba(23, 27, 36, 0.55);
   --vidrio-borde: rgba(255, 255, 255, 0.07);
+  --vidrio-escena: rgba(23, 27, 36, 0.76);
   --tinte-azul: rgba(126, 151, 255, 0.07);
   --tinte-rosa: rgba(122, 54, 82, 0.25);
   --relieve: -3px -3px 7px rgba(255, 255, 255, 0.03), 3px 3px 7px rgba(0, 0, 0, 0.5);
@@ -171,7 +178,9 @@ textarea {
 
   .barra,
   .herramientas,
-  .aviso-limite {
+  .aviso-limite,
+  .anillo,
+  .reloj__placa {
     background: var(--papel);
     -webkit-backdrop-filter: none;
     backdrop-filter: none;
@@ -912,8 +921,10 @@ button.tag:hover {
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 22px;
-  padding: 40px;
+  gap: 16px;
+  /* Más aire abajo que arriba: la placa de los mandos termina en el agua y
+     deja libre la franja de pasto por donde caminan los monitos. */
+  padding: 40px 40px 68px;
   min-height: 0;
 }
 
@@ -922,9 +933,11 @@ button.tag:hover {
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
-  color: var(--tinta-tenue);
+  color: var(--tinta-suave);
 }
 
+/* El rótulo flota sobre el cielo de la escena, sin placa: lo sostiene un halo
+   de papel (claro u oscuro según el tema, igual que la tinta que rodea). */
 .reloj__rotulo {
   font-family: var(--serif);
   font-size: 21px;
@@ -935,6 +948,10 @@ button.tag:hover {
   width: min(420px, 80vw);
   text-align: center;
   padding: 0;
+  text-shadow:
+    0 0 2px var(--papel),
+    0 0 5px var(--papel),
+    0 0 12px var(--papel);
 }
 
 .reloj__rotulo:focus {
@@ -942,7 +959,7 @@ button.tag:hover {
 }
 
 .reloj__rotulo::placeholder {
-  color: var(--regla);
+  color: var(--tinta-suave);
   font-style: italic;
 }
 
@@ -960,11 +977,18 @@ button.tag:hover {
   color: var(--azul);
 }
 
-/* El progreso es un anillo de tinta que se traza desde arriba, en punto. */
+/* El progreso es un anillo de tinta que se traza desde arriba, en punto.
+   La esfera es un cristal de reloj: vidrio redondo que deja ver la escena
+   esmerilada y le da a la fase y al pie un fondo parejo de día, tarde y noche. */
 .anillo {
   position: relative;
   width: min(310px, 64vw);
   aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--vidrio-escena);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow: var(--sombra);
 }
 
 .anillo__svg {
@@ -979,7 +1003,7 @@ button.tag:hover {
    va cubriendo con un trazo continuo. */
 .anillo__riel {
   fill: none;
-  stroke: var(--regla);
+  stroke: var(--tinta-tenue);
   stroke-width: 2;
   stroke-dasharray: 1 6;
   stroke-linecap: round;
@@ -1016,7 +1040,7 @@ button.tag:hover {
 .anillo__pie {
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--tinta-tenue);
+  color: var(--tinta-suave);
 }
 
 /* --- Descanso: la pradera 8 bit ------------------------------------------- */
@@ -1046,20 +1070,22 @@ button.tag:hover {
    plumón (macizo con contorno grueso) y timbre (masa de goma calada); todas
    comparten la geometría, así que el carril y la pose no cambian al rotar.
 
-   DOM:  .mono (carril) > .mono__paseo (patrulla) > .mono__voltea (giro y
-   despertar) > [.mono__ola >] svg.mono__fig (la gracia de cada uno).
+   DOM:  .monos (el área) > .mono (posición) > .mono__voltea (giro, péndulo y
+   despertar) > [.mono__ola >] svg.mono__fig | sprite; y .mono__agarre, la
+   zona que se toma con el puntero.
 
-   Reglas de movimiento: sólo transform y opacity. En foco casi no se mueven
-   (a lo más gatito y Appa), en la pausa patrullan su carril y en la siesta
-   duermen con las zetas. El color sigue al reloj: gris tinta estudiando y
-   durmiendo, azul de pluma en el recreo. */
+   Dónde está cada uno lo decide el motor (src/personajes/motor.ts), que
+   escribe `transform` en .mono y .mono__voltea en cada cuadro: aquí no hay
+   patrulla ni carriles. El CSS pone tamaños, color y los gestos de las
+   pieles SVG. El color sigue al reloj: gris tinta estudiando y durmiendo,
+   azul de pluma en el recreo. */
 
-/* Hacia dónde mira mientras patrulla: lo anima la patrulla y lo heredan los
-   hijos, así el giro siempre cae en la vuelta del carril, nunca a destiempo. */
-@property --dir {
-  syntax: '<number>';
-  inherits: true;
-  initial-value: 1;
+/* El área de juego: todo el centro del reloj. No recibe clics; sólo la zona de
+   agarre de cada animal. */
+.monos {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
 
 .mono {
@@ -1077,14 +1103,13 @@ button.tag:hover {
   --mono-t-fade: 700ms;
   --mono-t-respira: 5s;
   --mono-escalon: 80ms;
-  --mira: 1; /* +1 mira a la derecha: los del carril izquierdo miran al centro */
   --caja-tope: 9999px;
   --caja-ancho: calc(min(var(--caja-base) * var(--mono-agranda), var(--caja-tope)) * var(--mono-escala));
 
   position: absolute;
   bottom: var(--mono-suelo);
-  left: var(--c-ini);
-  width: var(--c-ancho);
+  left: 0;
+  width: var(--caja-ancho);
   height: var(--caja-ancho);
   color: var(--mono-tinta);
   pointer-events: none;
@@ -1092,24 +1117,93 @@ button.tag:hover {
   transition: color var(--mono-t-despertar);
 }
 
-.mono[data-animo='recreo'] {
+/* La sombra de cada uno, en el suelo: dos elipses de píxel duro (escalones, sin
+   desenfoque). `__pie` es la de contacto, siempre bajo las patas; `__proy` la
+   proyectada, que el motor de la vista estira, corre y ladea al lado contrario
+   de la luz (src/lib/sol.ts) y encoge y aclara cuando el animal está en el aire.
+   Van antes que los .mono en el DOM: quedan detrás de todos. */
+.sombra {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  visibility: hidden;
+}
+
+.sombra__pie,
+.sombra__proy {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  width: 32px;
+  height: 8px;
+  background: var(--sombra-escena);
+  transform-origin: 50% 50%;
+  will-change: transform, opacity;
+  /* Una elipse de 16 × 6 "píxeles": tres escalones por lado. */
+  clip-path: polygon(
+    31.25% 0, 68.75% 0, 68.75% 16.67%, 87.5% 16.67%, 87.5% 33.33%, 100% 33.33%, 100% 66.67%,
+    87.5% 66.67%, 87.5% 83.33%, 68.75% 83.33%, 68.75% 100%, 31.25% 100%, 31.25% 83.33%,
+    12.5% 83.33%, 12.5% 66.67%, 0 66.67%, 0 33.33%, 12.5% 33.33%, 12.5% 16.67%, 31.25% 16.67%
+  );
+}
+
+/* Dentro del área manda el motor: invisible hasta que lo coloca por primera vez. */
+.monos > .mono {
+  visibility: hidden;
+  will-change: transform;
+}
+
+/* El cuy metido en la piedra: no se ve ni se puede tomar (sigue midiendo, así
+   el motor no lo da por ausente). */
+.mono[data-escondido] {
+  opacity: 0;
+}
+
+.mono[data-escondido] .mono__agarre {
+  pointer-events: none;
+}
+
+/* El que va encima de otro (o colgado del marco) se pinta por delante; el que
+   llevan con el puntero, por delante de todos. */
+.mono[data-encima] {
+  z-index: 1;
+}
+
+.mono[data-tomado] {
+  z-index: 2;
+}
+
+/* El color sigue al reloj (data-reloj); la pose de la piel, a lo que hace el
+   animal (data-animo). Fuera del área — la demo — sólo hay data-animo. */
+.mono[data-reloj='recreo'],
+.mono[data-animo='recreo']:not([data-reloj]) {
   --mono-tinta: var(--azul);
 }
 
+/* La zona que se toma: la silueta, no la caja entera, para no tapar clics. */
+.mono__agarre {
+  position: absolute;
+  inset: 20% 18% 4%;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: none;
+}
+
+.mono[data-tomado] .mono__agarre {
+  cursor: grabbing;
+}
+
 /* --- Cada animal: carril, caja, destacador, ritmo y gracia ----------------- */
-/* --c-ini / --c-ancho son % del área del reloj. --dur es un tramo de ida; la
-   patrulla de ida y vuelta dura el doble. --fase reparte a los que están
-   parados en estudia y siesta, para que no queden en fila. */
+/* El sitio, la velocidad y el andar de cada uno están en RASGOS (motor.ts).
+   Aquí queda lo de la piel SVG: destacador, caja y el gesto del recreo. */
 
 .mono--conejito {
   --mono-marca: var(--marca-rosa);
-  --c-ini: 3%;
-  --c-ancho: 15%;
   --caja-base: 88px;
-  --mira: 1;
   --orden: 0;
-  --dur: 12s;
-  --fase: -9s;
   --gesto: mono-brinquito;
   --gesto-dur: 0.9s;
   --salto: 17px;
@@ -1117,28 +1211,18 @@ button.tag:hover {
 
 .mono--gatito {
   --mono-marca: var(--marca-amarillo);
-  --c-ini: 19%;
-  --c-ancho: 16%;
   --caja-base: 76px;
   --caja-tope: max(0px, calc(50vh - 300px));
-  --mira: 1;
   --orden: 1;
-  --dur: 20s;
-  --fase: -26s;
   --gesto: mono-tranco;
   --gesto-dur: 0.7s;
 }
 
 .mono--cuy {
   --mono-marca: var(--marca-rosa);
-  --c-ini: 36%;
-  --c-ancho: 11%;
   --caja-base: 68px;
   --caja-tope: max(0px, calc(50vh - 300px));
-  --mira: 1;
   --orden: 2;
-  --dur: 14s;
-  --fase: -11s;
   --gesto: mono-brinquito;
   --gesto-dur: 0.7s;
   --salto: 9px;
@@ -1146,108 +1230,83 @@ button.tag:hover {
 
 .mono--caracol {
   --mono-marca: var(--marca-verde);
-  --c-ini: 48%;
-  --c-ancho: 10%;
   --caja-base: 64px;
   --caja-tope: max(0px, calc(50vh - 300px));
-  --mira: -1;
   --orden: 3;
-  --dur: 60s;
-  --fase: -40s;
   --gesto: mono-arrastra;
   --gesto-dur: 2.4s;
 }
 
 .mono--perrito {
   --mono-marca: var(--marca-amarillo);
-  --c-ini: 59%;
-  --c-ancho: 16%;
   --caja-base: 76px;
   --caja-tope: max(0px, calc(50vh - 300px));
-  --mira: -1;
   --orden: 4;
-  --dur: 16s;
-  --fase: -21s;
   --gesto: mono-tranco;
   --gesto-dur: 0.65s;
 }
 
 .mono--ranita {
   --mono-marca: var(--marca-verde);
-  --c-ini: 77%;
-  --c-ancho: 15%;
   --caja-base: 76px;
-  --mira: -1;
   --orden: 5;
-  --dur: 18s;
-  --fase: -14s;
   --gesto: mono-pirueta;
   --gesto-dur: 4s;
 }
 
-/* Appa vuela arriba, de lado a lado, y no tiene carril de suelo. */
+/* La piedra hueca del cuy: un objeto del mapa, no un animal. Misma celda y mismo
+   tope que el cuy, así sus píxeles miden lo mismo; la zona de agarre es la roca
+   (la mitad de abajo de la celda). */
+.mono--piedra {
+  --caja-base: 128px;
+  --mono-agranda: 1;
+  --caja-tope: max(0px, calc(50vh - 300px));
+}
+
+.mono--piedra .mono__agarre {
+  inset: 34% 7% 5%;
+}
+
+/* Appa vuela arriba (la altura la pone el motor); su piel SVG es apaisada. */
 .mono--appa {
   --mono-marca: var(--marca-azul);
-  --c-ini: 2%;
-  --c-ancho: 96%;
   --caja-base: 96px;
   --caja-tope: max(0px, calc((50vh - 332px) * 1.875));
-  --mira: 1;
   --orden: 6;
-  --dur: 40s;
-  --fase: -17s;
   --gesto: mono-planeo;
   --gesto-dur: 2.4s;
   --gesto-dir: alternate;
-  top: 10px; /* el planeo inclina la caja: deja margen bajo la barra */
-  bottom: auto;
   height: calc(var(--caja-ancho) * 64 / 120);
+}
+
+/* Con hojas pixel la celda es cuadrada, como la de todos. */
+.mono--appa:has(.mono__fig--sprite) {
+  height: var(--caja-ancho);
+}
+
+/* Appa vuela pegado al borde de arriba y su celda asoma sobre él (el dibujo va
+   en la mitad de abajo): la zona de agarre es sólo el dibujo, para no tapar la
+   barra de navegación. */
+.mono--appa:has(.mono__fig--sprite) .mono__agarre {
+  inset: 58% 20% 4%;
 }
 
 .mono[data-animo='estudia'].mono--appa {
   --mono-ola: 3px;
 }
 
-/* --- Las tres capas ------------------------------------------------------- */
+/* --- El giro ------------------------------------------------------------- */
 
-/* La patrulla: sólo en recreo corre; fuera de él queda congelada donde esté
-   (es posición, no gesto). El margen de 0,09 de caja a cada lado deja sitio
-   al squash de los brincos. */
-.mono__paseo {
-  position: absolute;
-  left: 0;
-  bottom: 0;
-  width: 100%;
-  --x0: calc(var(--caja-ancho) * 0.09);
-  --x1: calc(100% - var(--caja-ancho) * 1.09);
-  transform: translateX(var(--x0));
-  animation: mono-patrulla calc(var(--dur) * 2) ease-in-out var(--fase) infinite paused;
-}
-
-.mono--appa .mono__paseo {
-  bottom: auto;
-  top: 0;
-}
-
-.mono[data-animo='recreo'] .mono__paseo {
-  animation-play-state: running;
-  will-change: transform;
-}
-
-/* El giro y el despertar. La figura se dibuja mirando a +x; --mira la voltea
-   al reposo, y en recreo manda --dir (hacia dónde va). La llave de React rehace
-   este nodo en cada cambio de ánimo o de piel, así el despertar y el fundido
-   parten limpios y el giro nunca queda a medias. */
+/* El giro, el péndulo y el despertar. La figura se dibuja mirando a +x; el
+   motor escribe aquí `rotate() scaleX()`. El origen es el punto de agarre
+   (32, 8 de la celda de 64): colgando, se mece desde donde lo tienen tomado.
+   La llave de React rehace este nodo en cada cambio de piel, así el fundido
+   parte limpio. */
 .mono__voltea {
-  width: var(--caja-ancho);
-  transform: scaleX(var(--mira));
-  transition: transform var(--mono-t-reposo) ease-in-out;
+  width: 100%;
+  transform-origin: 50% 12.5%;
   animation: mono-despierta var(--mono-t-despertar) ease-out
     calc(var(--orden) * var(--mono-escalon)) backwards;
-}
-
-.mono[data-animo='recreo'] .mono__voltea {
-  transform: scaleX(var(--dir));
 }
 
 /* Cambio de piel: el mismo despertar, más largo — un fundido, sin trazo ni brillo. */
@@ -1265,7 +1324,7 @@ button.tag:hover {
 
 /* Monito de hojas PNG (gatito pixel): los cuadros ya traen respiración, paso y
    siesta, así que no lleva los gestos CSS de las pieles. Caja cuadrada, porque
-   el reproductor escala la celda a un lado. La patrulla y el volteo siguen. */
+   el reproductor escala la celda a un lado. */
 /* El pixel sólo escala a múltiplos enteros de 64: con 76px quedaba en 64 (el
    dibujo, ~40px). 128 da ×2 en pantalla normal y ×4 en retina; el reproductor
    redondea hacia abajo, así que la caja es el techo, no el tamaño. */
@@ -1518,42 +1577,6 @@ button.tag:hover {
 
 /* --- Keyframes ------------------------------------------------------------ */
 
-/* Ida y vuelta por el carril con paraditas. Un solo ciclo: la primera mitad
-   va hacia la derecha, la segunda vuelve. --dir cambia a la mitad, justo en
-   la parada del extremo, y el giro lo hace la transición del voltea. */
-@keyframes mono-patrulla {
-  0%,
-  5%,
-  95%,
-  100% {
-    transform: translateX(var(--x0));
-  }
-  14%,
-  20%,
-  80%,
-  86% {
-    transform: translateX(calc(var(--x0) + (var(--x1) - var(--x0)) * 0.3));
-  }
-  32%,
-  38%,
-  62%,
-  68% {
-    transform: translateX(calc(var(--x0) + (var(--x1) - var(--x0)) * 0.65));
-  }
-  46%,
-  54% {
-    transform: translateX(var(--x1));
-  }
-  0%,
-  49.99% {
-    --dir: 1;
-  }
-  50%,
-  100% {
-    --dir: -1;
-  }
-}
-
 @keyframes mono-despierta {
   from {
     opacity: 0;
@@ -1765,6 +1788,7 @@ button.tag:hover {
 @media (max-height: 740px) {
   .mono--gatito,
   .mono--cuy,
+  .mono--piedra,
   .mono--caracol,
   .mono--perrito {
     display: none;
@@ -1783,22 +1807,32 @@ button.tag:hover {
   animation-play-state: paused !important;
 }
 
-/* Sin movimiento: todos quietos y centrados en su carril; las tres poses se
-   siguen distinguiendo por el dibujo. */
+/* Sin movimiento: el motor no los pasea ni los hace jugar (se pueden tomar y
+   dejar), y aquí se apagan los gestos de las pieles; las poses se siguen
+   distinguiendo por el dibujo. */
 @media (prefers-reduced-motion: reduce) {
   .mono,
   .mono * {
     animation: none !important;
     transition: none !important;
   }
+}
 
-  .mono__paseo {
-    transform: translateX(calc((100% - var(--caja-ancho)) / 2));
-  }
-
-  .mono__voltea {
-    transform: scaleX(var(--mira)) !important;
-  }
+/* La placa: mandos, minutos y cuenta sobre un solo vidrio. Caen encima de la
+   bruma, la ribera y el agua, donde ninguna tinta chica se sostiene sola. Es
+   angosta a propósito — la escena sigue a los lados y se adivina a través. */
+.reloj__placa {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 20px 12px;
+  border: 1px solid var(--vidrio-borde);
+  border-radius: calc(var(--radio) * 2);
+  background: var(--vidrio-escena);
+  -webkit-backdrop-filter: blur(14px) saturate(1.3);
+  backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow: var(--sombra);
 }
 
 /* Estudio y descanso, a la vista bajo el reloj. */
@@ -1826,7 +1860,7 @@ button.tag:hover {
   font-size: 10px;
   letter-spacing: 0.09em;
   text-transform: uppercase;
-  color: var(--tinta-tenue);
+  color: var(--tinta-suave);
 }
 
 .tiempo__mando {
@@ -1868,7 +1902,7 @@ button.tag:hover {
 .tiempo__min {
   font-family: var(--mono);
   font-size: 9px;
-  color: var(--tinta-tenue);
+  color: var(--tinta-suave);
 }
 
 .reloj__mandos {
@@ -1879,7 +1913,7 @@ button.tag:hover {
 .reloj__cuenta {
   font-family: var(--mono);
   font-size: 11px;
-  color: var(--tinta-tenue);
+  color: var(--tinta-suave);
   display: flex;
   gap: 5px;
   align-items: center;

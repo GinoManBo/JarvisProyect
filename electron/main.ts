@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, Notification, shell, dialog } from 'electr
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { promises as fs } from 'node:fs'
+import { spawn } from 'node:child_process'
 import { readCollection, writeCollection, exportAll, backupAll, dataDir } from './store'
 import { buscar as buscarArticulos, indice as indiceCodigos } from './codigos'
 
@@ -64,6 +65,19 @@ app.whenReady().then(() => {
   )
 
   ipcMain.handle('avisar', (_e, titulo: string, cuerpo: string) => {
+    // En Linux (donde se desarrolla) `Notification.show()` habla con D-Bus de forma
+    // síncrona en el proceso main: si el servicio de notificaciones no responde,
+    // congela la ventana ~25 s al terminar cada bloque. `notify-send` en un proceso
+    // aparte nunca bloquea; si no existe, el aviso simplemente no sale.
+    if (process.platform === 'linux') {
+      const hijo = spawn('notify-send', ['--app-name=Jarvis', titulo, cuerpo], {
+        stdio: 'ignore',
+        detached: true,
+      })
+      hijo.on('error', () => {})
+      hijo.unref()
+      return
+    }
     if (!Notification.isSupported()) return
     new Notification({ title: titulo, body: cuerpo }).show()
   })
