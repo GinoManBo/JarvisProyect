@@ -2918,3 +2918,52 @@ button.tag:hover {
 .bloque--mini.bloque--x::after {
   height: 2px;
 }
+
+/* --- Telegram (en Planificación) ------------------------------------------ */
+
+/* El aviso ocupa la segunda fila del formulario, junto al botón. */
+.formulario__ancho {
+  grid-column: 1 / 5;
+}
+
+.evento__aviso {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--tinta-tenue);
+  background: none;
+  border: 1px solid var(--regla);
+  border-radius: var(--radio);
+  padding: 3px 4px;
+  margin-right: 4px;
+}
+
+.telegram {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 4px;
+}
+
+.telegram__texto {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--tinta-tenue);
+}
+
+.telegram__texto code {
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.telegram__fila {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+@media (max-width: 1000px) {
+  .formulario__ancho {
+    grid-column: 1 / -1;
+  }
+}

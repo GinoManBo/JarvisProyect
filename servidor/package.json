@@ -1,0 +1,12 @@
+{
+  "name": "jarvis-avisos",
+  "private": true,
+  "type": "module",
+  "description": "Servicio de avisos de Jarvis por Telegram (Railway)",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

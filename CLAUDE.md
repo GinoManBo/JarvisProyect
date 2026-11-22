@@ -54,6 +54,8 @@ The collection name is validated against an allowlist in `store.ts` before it re
 the filesystem, and writes go to a temp file then `rename` so a crash mid-write
 can't truncate the data. Adding a collection means touching that allowlist, the
 `Datos` type in `src/lib/datos.tsx`, and nothing else.
+`citas` has had no UI since the Código tab became search-only; it stays
+loaded and exported so the citations she saved before aren't lost.
 
 **State.** All seven collections load once into a single React context
 (`ProveedorDatos` in `src/lib/datos.tsx`) and every view reads them via
@@ -149,7 +151,7 @@ be a large addition for a personal app.
 Chilean codes from LeyChile (`obtxml?opt=7&idNorma=…` — it 401s without a browser
 User-Agent) and writes them to `recursos/codigos/*.json` (~7 MB, committed). Run it
 by hand when a code is reformed; it is **not** part of `npm run build`. The app
-never touches the network — `electron/codigos.ts` reads those JSONs in the main
+never fetches them at runtime — `electron/codigos.ts` reads those JSONs in the main
 process and answers `codigos:indice` / `codigos:buscar` over IPC, because loading
 7 MB into the renderer would stall the window on open. Search is by article number
 if the query starts with digits, otherwise all-words (not exact phrase: "legítima
@@ -171,6 +173,24 @@ Three traps in the source XML, all handled in the script:
 Transitory articles restart numbering at 1, so their `etiqueta` is suffixed
 "transitorio" and they sort last. After all that, `etiqueta` is unique within a
 code — 7.622 articles across the nine.
+
+**Telegram goes through a service on Railway, never directly.** `servidor/` is a
+separate, dependency-free Node program (its own `package.json`, deployed with Root
+Directory = `servidor`; see `servidor/README.md`). It holds the bot token, keeps the
+upcoming events in `estado.json` on a Railway volume, checks every 10 min between
+`HORA_AVISO` and 23:00 *America/Santiago* (the server runs in UTC — dates are computed
+from Santiago wall time, never the server clock), and answers `/start` (first private
+chat links) and `/proximos` over a webhook guarded by a secret derived from the key.
+Jarvis only knows `AVISOS_URL` and `AVISOS_CLAVE`, injected into the main process at
+build time from `.env` via `define` (no `VITE_` prefix, so the renderer never sees them);
+without them the Telegram panel says it isn't configured and nothing touches the network.
+`electron/avisos.ts` is the client. `useSincronizarAvisos` (`src/lib/avisos.ts`, mounted
+in `App`) PUTs every upcoming event — with its `aviso` preset or null — 2 s after any
+change, retrying every 5 min while offline; it waits for `cargados` from `ProveedorDatos`,
+because before the disk read `eventos` is `[]` and would wipe the list on the server. The
+pomodoro POSTs one message when a focus block ends. The service decides what is due and
+tracks what it already sent; changing an event's date or preset resets that. The preset
+table (`AVISOS`) exists in both `src/lib/avisos.ts` and `servidor/index.mjs` — change both.
 
 **Flashcards have no scheduling.** There was an SM-2 in `src/lib/repaso.ts`; it was
 removed on request — cards carry no due date, ease, or interval. A review session

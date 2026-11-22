@@ -17,6 +17,22 @@ export type Articulo = {
   sigla: string
 }
 
+export type EstadoTelegram =
+  | { estado: 'apagado' }
+  | { estado: 'sin-conexion' }
+  | { estado: 'esperando'; bot: string }
+  | { estado: 'vinculado'; bot: string; nombre: string }
+
+/** Lo que el servicio de avisos necesita de cada evento. */
+export type EventoAviso = {
+  id: string
+  titulo: string
+  fecha: string
+  tipo: string
+  ramo: string | null
+  aviso: string | null
+}
+
 type Puente = {
   leer: (col: string) => Promise<unknown>
   guardar: (col: string, data: unknown) => Promise<void>
@@ -24,6 +40,12 @@ type Puente = {
   respaldar: () => Promise<string>
   abrirCarpeta: () => Promise<string>
   avisar: (titulo: string, cuerpo: string) => Promise<void>
+  /** El servicio de avisos en Railway, que habla con Telegram. */
+  avisos: {
+    estado: () => Promise<EstadoTelegram>
+    sincronizar: (eventos: EventoAviso[]) => Promise<boolean>
+    enviar: (texto: string) => Promise<boolean>
+  }
   codigos: () => Promise<FichaCodigo[]>
   buscarArticulos: (slug: string, consulta: string) => Promise<Articulo[]>
 }
@@ -51,6 +73,12 @@ const respaldoNavegador: Puente = {
     if ('Notification' in window && Notification.permission === 'granted') {
       new Notification(titulo, { body: cuerpo })
     }
+  },
+  // La clave del servicio vive en el proceso main; en el navegador no hay avisos.
+  avisos: {
+    estado: async () => ({ estado: 'apagado' }),
+    sincronizar: async () => false,
+    enviar: async () => false,
   },
   // Los códigos los sirve el proceso main leyendo `recursos/codigos/`; fuera de
   // Electron no hay de dónde sacarlos.

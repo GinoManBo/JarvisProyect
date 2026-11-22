@@ -26,16 +26,18 @@ type Datos = {
   malla: Record<string, EstadoMalla>
   setMalla: (f: (p: Record<string, EstadoMalla>) => Record<string, EstadoMalla>) => void
   ramo: (id: string | null) => Ramo | undefined
+  /** Ya se leyeron del disco ramos y eventos (antes de eso valen lo inicial). */
+  cargados: boolean
 }
 
 const Ctx = createContext<Datos | null>(null)
 
 export function ProveedorDatos({ children }: { children: ReactNode }) {
-  const [ramos, setRamos] = useColeccion<Ramo[]>('ramos', RAMOS_INICIALES)
+  const [ramos, setRamos, ramosListos] = useColeccion<Ramo[]>('ramos', RAMOS_INICIALES)
   const [notas, setNotas] = useColeccion<Nota[]>('notas', [])
   const [citas, setCitas] = useColeccion<Cita[]>('citas', [])
   const [flashcards, setFlashcards] = useColeccion<Flashcard[]>('flashcards', [])
-  const [eventos, setEventos] = useColeccion<Evento[]>('eventos', [])
+  const [eventos, setEventos, eventosListos] = useColeccion<Evento[]>('eventos', [])
   const [ajustes, setAjustes] = useColeccion<Ajustes>('ajustes', AJUSTES_INICIALES)
   const [malla, setMalla] = useColeccion<Record<string, EstadoMalla>>('malla', {})
 
@@ -55,6 +57,7 @@ export function ProveedorDatos({ children }: { children: ReactNode }) {
     malla,
     setMalla,
     ramo: (id) => ramos.find((r) => r.id === id),
+    cargados: ramosListos && eventosListos,
   }
 
   return <Ctx.Provider value={valor}>{children}</Ctx.Provider>

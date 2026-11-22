@@ -78,6 +78,12 @@ export function ProveedorReloj({ children }: { children: ReactNode }) {
         titulo.trim() || 'Bloque terminado',
         toca === 'larga' ? 'Pausa larga. Levántate de la silla.' : 'Pausa corta. Estira y toma agua.',
       )
+      // También al celular: si no hay bot vinculado, no sale nada.
+      const minutos = toca === 'larga' ? cfg.minutosPausaLarga : cfg.minutosPausaCorta
+      void puente().avisos.enviar(
+        `Terminaste ${titulo.trim() ? `"${titulo.trim()}"` : 'el bloque'}. Ahora toca descansar ${minutos} minutos.` +
+          (toca === 'larga' ? ' Levántate de la silla.' : ' Estira y toma agua.'),
+      )
       setFase(toca)
       setRestante(largoDe(toca))
     } else {

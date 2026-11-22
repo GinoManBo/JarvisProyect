@@ -41,7 +41,11 @@ export type Evento = {
   fecha: string // YYYY-MM-DD
   tipo: TipoEvento
   nota: string
+  /** Cada cuánto recordarlo por Telegram. Sin el campo, no se avisa. */
+  aviso?: AvisoEvento
 }
+
+export type AvisoEvento = 'dia' | 'semana' | 'quincena' | 'mes'
 
 export type Ajustes = {
   tema: 'claro' | 'oscuro'

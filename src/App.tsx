@@ -6,6 +6,7 @@ import Calendario from './views/Calendario'
 import Descanso from './views/Descanso'
 import Planificacion from './views/Planificacion'
 import Malla from './views/Malla'
+import { useSincronizarAvisos } from './lib/avisos'
 
 const SECCIONES = ['Apuntes', 'Calendario', 'Descanso', 'Planificación', 'Malla'] as const
 type Seccion = (typeof SECCIONES)[number]
@@ -31,6 +32,7 @@ function RelojBarra({ onIr }: { onIr: () => void }) {
 function Marco() {
   const { ajustes, setAjustes } = useDatos()
   const [seccion, setSeccion] = useState<Seccion>('Apuntes')
+  useSincronizarAvisos()
 
   useEffect(() => {
     document.documentElement.dataset.tema = ajustes.tema

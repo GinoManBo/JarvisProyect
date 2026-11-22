@@ -2,8 +2,16 @@ node_modules/
 dist/
 dist-electron/
 release/
+
+# Token del bot de Telegram: nunca al repo.
+.env
+.env.*
+!.env.example
 .DS_Store
 *.log
 
 # Ajustes locales de Claude Code, no del proyecto.
 .claude/settings.local.json
+
+# Estado local del servicio de avisos al probarlo fuera de Railway.
+servidor/datos/

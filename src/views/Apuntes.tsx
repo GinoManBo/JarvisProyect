@@ -1,10 +1,10 @@
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useDatos } from '../lib/datos'
 import { ahora, id, puente, type Articulo, type FichaCodigo } from '../lib/almacen'
 import { barajar, cartaNueva } from '../lib/repaso'
-import type { Cita, Flashcard, Nota } from '../lib/types'
+import type { Flashcard, Nota } from '../lib/types'
 
-type Modo = 'apuntes' | 'citas' | 'repaso'
+type Modo = 'apuntes' | 'codigo' | 'repaso'
 
 const MARCAS = [
   { nombre: 'Amarillo', color: 'var(--marca-amarillo)' },
@@ -27,8 +27,8 @@ export default function Apuntes() {
     <div className="doble">
       {modo === 'apuntes' ? (
         <VistaApuntes modo={modo} setModo={setModo} />
-      ) : modo === 'citas' ? (
-        <VistaCitas modo={modo} setModo={setModo} />
+      ) : modo === 'codigo' ? (
+        <VistaCodigo modo={modo} setModo={setModo} />
       ) : (
         <VistaRepaso modo={modo} setModo={setModo} />
       )}
@@ -45,7 +45,7 @@ export default function Apuntes() {
  * "Código" se llama así porque detrás está el buscador de los códigos chilenos.
  */
 const MODOS: { modo: Modo; rotulo: string }[] = [
-  { modo: 'citas', rotulo: 'Código' },
+  { modo: 'codigo', rotulo: 'Código' },
   { modo: 'repaso', rotulo: 'Repaso' },
 ]
 
@@ -340,43 +340,10 @@ function VistaApuntes({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => voi
   )
 }
 
-/* --- Citas ---------------------------------------------------------------- */
+/* --- Código ---------------------------------------------------------------- */
 
-function VistaCitas({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void }) {
-  const { citas, setCitas, ramos, ramo } = useDatos()
-  const [filtro, setFiltro] = useState('')
-
-  const visibles = useMemo(() => {
-    const q = filtro.trim().toLowerCase()
-    const lista = q
-      ? citas.filter(
-          (c) =>
-            c.fuente.toLowerCase().includes(q) ||
-            c.texto.toLowerCase().includes(q) ||
-            c.tags.some((t) => t.toLowerCase().includes(q)),
-        )
-      : citas
-    return [...lista].sort((a, b) => b.creado.localeCompare(a.creado))
-  }, [citas, filtro])
-
-  const editar = (idCita: string, cambio: Partial<Cita>) =>
-    setCitas((prev) => prev.map((c) => (c.id === idCita ? { ...c, ...cambio } : c)))
-
-  const crear = (semilla?: Partial<Cita>) =>
-    setCitas((prev) => [
-      {
-        id: id(),
-        ramoId: ramos[0]?.id ?? null,
-        fuente: '',
-        texto: '',
-        comentario: '',
-        tags: [],
-        creado: ahora(),
-        ...semilla,
-      },
-      ...prev,
-    ])
-
+/** El buscador de los códigos chilenos. Sólo consulta: no guarda nada. */
+function VistaCodigo({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void }) {
   /* --- Buscador de los códigos ------------------------------------------- */
 
   const [codigos, setCodigos] = useState<FichaCodigo[]>([])
@@ -424,13 +391,6 @@ function VistaCitas({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void 
   const codigo = codigos.find((c) => c.slug === slug)
   const enBusqueda = consulta.trim().length > 0
 
-  const guardarArticulo = (a: Articulo) =>
-    crear({
-      fuente: `Art. ${a.etiqueta || a.num} ${a.sigla}`,
-      texto: a.texto,
-      tags: [a.sigla.toLowerCase()],
-    })
-
   return (
     <>
       <aside className="indice">
@@ -452,10 +412,6 @@ function VistaCitas({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void 
             value={consulta}
             onChange={(e) => setConsulta(e.target.value)}
           />
-
-          <button className="btn" onClick={() => crear()}>
-            Escribir una cita
-          </button>
         </div>
 
         <div className="indice__lista">
@@ -487,49 +443,25 @@ function VistaCitas({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void 
               ))}
             </>
           ) : (
-            <>
-              <div className="indice__grupo">Etiquetas</div>
-              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 5, padding: '2px 14px' }}>
-                {[...new Set(citas.flatMap((c) => c.tags))].map((t) => (
-                  <button
-                    key={t}
-                    className="tag"
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => setFiltro(t)}
-                  >
-                    #{t}
-                  </button>
-                ))}
-                {citas.length === 0 && <span className="fila__pie">Aún ninguna.</span>}
-              </div>
-
-              <div className="indice__grupo">Mis citas</div>
-              <input
-                className="campo"
-                style={{ margin: '0 14px', width: 'calc(100% - 28px)' }}
-                placeholder="Filtrar lo guardado"
-                value={filtro}
-                onChange={(e) => setFiltro(e.target.value)}
-              />
-            </>
+            <span className="fila__pie" style={{ padding: '10px 14px' }}>
+              {codigo ? `${codigo.articulos.toLocaleString('es-CL')} artículos en el ${codigo.sigla}.` : ''}
+            </span>
           )}
         </div>
       </aside>
 
-      {enBusqueda ? (
-        <section className="hoja">
+      <section className="hoja">
+        {enBusqueda ? (
           <div className="margen">
             {hallazgos.map((a) => (
               <article key={`${a.etiqueta}-${a.texto.slice(0, 12)}`} id={`art-${a.etiqueta}`} className="cita">
                 <span className="cita__fuente">Art. {a.etiqueta || a.num} {a.sigla}</span>
                 <p className="articulo__texto">{a.texto}</p>
-                <div className="cita__pie">
-                  {a.ubicacion && <span className="articulo__ubicacion">{a.ubicacion}</span>}
-                  <span style={{ flex: 1 }} />
-                  <button className="btn btn--mudo" onClick={() => guardarArticulo(a)}>
-                    Guardar como cita
-                  </button>
-                </div>
+                {a.ubicacion && (
+                  <div className="cita__pie">
+                    <span className="articulo__ubicacion">{a.ubicacion}</span>
+                  </div>
+                )}
               </article>
             ))}
             {!buscando && hallazgos.length === 0 && (
@@ -542,170 +474,17 @@ function VistaCitas({ modo, setModo }: { modo: Modo; setModo: (m: Modo) => void 
               </div>
             )}
           </div>
-        </section>
-      ) : (
-        <section className="hoja">
-          {visibles.length === 0 ? (
-          <div className="vacio">
-            <h3>El margen está limpio</h3>
-            <p>Pega acá los artículos y fallos que quieras tener a mano.</p>
-          </div>
         ) : (
-          <div className="margen">
-            {visibles.map((c) => (
-              <article key={c.id} className="cita">
-                <input
-                  className="cita__fuente"
-                  placeholder="Art. 1545 CC"
-                  value={c.fuente}
-                  onChange={(e) => editar(c.id, { fuente: e.target.value })}
-                  style={{ border: 0, background: 'none' }}
-                />
-                <AreaElastica
-                  className="cita__texto"
-                  placeholder="«Todo contrato legalmente celebrado es una ley para los contratantes…»"
-                  value={c.texto}
-                  onChange={(v) => editar(c.id, { texto: v })}
-                />
-                <AreaElastica
-                  className="cita__comentario"
-                  placeholder="Tu comentario"
-                  value={c.comentario}
-                  onChange={(v) => editar(c.id, { comentario: v })}
-                />
-                <div className="cita__pie">
-                  <span className="punto" style={{ background: ramo(c.ramoId)?.color }} />
-                  <select
-                    value={c.ramoId ?? ''}
-                    onChange={(e) => editar(c.id, { ramoId: e.target.value || null })}
-                    style={{
-                      border: 0,
-                      background: 'none',
-                      fontFamily: 'var(--mono)',
-                      fontSize: 10,
-                      color: 'var(--tinta-suave)',
-                    }}
-                  >
-                    <option value="">Sin ramo</option>
-                    {ramos.map((r) => (
-                      <option key={r.id} value={r.id}>
-                        {r.nombre}
-                      </option>
-                    ))}
-                  </select>
-                  <input
-                    value={c.tags.join(', ')}
-                    onChange={(e) =>
-                      editar(c.id, {
-                        tags: e.target.value
-                          .split(',')
-                          .map((t) => t.trim().replace(/^#/, ''))
-                          .filter(Boolean),
-                      })
-                    }
-                    placeholder="etiquetas"
-                    style={{
-                      border: 0,
-                      background: 'none',
-                      fontFamily: 'var(--mono)',
-                      fontSize: 10,
-                      color: 'var(--tinta-tenue)',
-                      flex: 1,
-                    }}
-                  />
-                  <BotonTarjeta cita={c} />
-                  <button
-                    className="btn btn--mudo btn--peligro"
-                    onClick={() => setCitas((prev) => prev.filter((x) => x.id !== c.id))}
-                  >
-                    Eliminar
-                  </button>
-                </div>
-              </article>
-            ))}
+          <div className="vacio">
+            <h3>Busca un artículo</h3>
+            <p>
+              Elige el código y escribe el número del artículo, o una palabra que aparezca en su
+              texto.
+            </p>
           </div>
-          )}
-        </section>
-      )}
+        )}
+      </section>
     </>
-  )
-}
-
-/**
- * Textarea que crece con lo que tiene adentro. Un artículo del Código Civil no
- * cabe en dos filas fijas, y las citas se cargan del disco *después* del primer
- * render: por eso el alto se recalcula cuando cambia el valor, no sólo al montar.
- */
-function AreaElastica({
-  className,
-  value,
-  placeholder,
-  onChange,
-}: {
-  className: string
-  value: string
-  placeholder: string
-  onChange: (v: string) => void
-}) {
-  const ref = useRef<HTMLTextAreaElement>(null)
-
-  const ajustar = useCallback(() => {
-    const el = ref.current
-    if (!el) return
-    // 'auto' primero, si no scrollHeight arrastra el alto anterior y nunca encoge.
-    el.style.height = 'auto'
-    el.style.height = `${el.scrollHeight}px`
-  }, [])
-
-  // Antes de pintar, para que no se vea el salto de alto.
-  useLayoutEffect(ajustar, [value, ajustar])
-
-  // Al angostarse la ventana el texto se reparte en más líneas.
-  useEffect(() => {
-    window.addEventListener('resize', ajustar)
-    return () => window.removeEventListener('resize', ajustar)
-  }, [ajustar])
-
-  return (
-    <textarea
-      ref={ref}
-      className={className}
-      placeholder={placeholder}
-      value={value}
-      rows={1}
-      onChange={(e) => onChange(e.target.value)}
-    />
-  )
-}
-
-/**
- * La cita se vuelve tarjeta de repaso: la fuente pregunta, el texto responde.
- * Vive fuera de VistaCitas a propósito — declarada adentro, React la remontaría
- * en cada tecla y se perdería el acuse de recibo.
- */
-function BotonTarjeta({ cita }: { cita: Cita }) {
-  const { setFlashcards } = useDatos()
-  const [hecha, setHecha] = useState(false)
-  const vacia = !cita.fuente.trim() && !cita.texto.trim()
-
-  const hacer = () => {
-    setFlashcards((prev) => [
-      cartaNueva(
-        cita.fuente.trim() || cita.texto.trim().slice(0, 80),
-        cita.texto.trim(),
-        cita.ramoId,
-        id(),
-      ),
-      ...prev,
-    ])
-    setHecha(true)
-    window.setTimeout(() => setHecha(false), 1800)
-  }
-
-  return (
-    <button className="btn btn--mudo" disabled={vacia || hecha} onClick={hacer}>
-      {hecha ? 'En el mazo ✓' : 'Hacer tarjeta'}
-    </button>
   )
 }
 

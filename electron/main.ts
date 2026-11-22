@@ -5,6 +5,7 @@ import { promises as fs } from 'node:fs'
 import { spawn } from 'node:child_process'
 import { readCollection, writeCollection, exportAll, backupAll, dataDir } from './store'
 import { buscar as buscarArticulos, indice as indiceCodigos } from './codigos'
+import * as avisos from './avisos'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const DEV_SERVER = process.env.VITE_DEV_SERVER_URL
@@ -63,6 +64,12 @@ app.whenReady().then(() => {
   ipcMain.handle('codigos:buscar', (_e, slug: string, consulta: string) =>
     buscarArticulos(slug, consulta),
   )
+
+  ipcMain.handle('avisos:estado', () => avisos.estado())
+  ipcMain.handle('avisos:sincronizar', (_e, eventos: avisos.EventoAviso[]) =>
+    avisos.sincronizar(eventos),
+  )
+  ipcMain.handle('avisos:enviar', (_e, texto: string) => avisos.enviar(texto))
 
   ipcMain.handle('avisar', (_e, titulo: string, cuerpo: string) => {
     // En Linux (donde se desarrolla) `Notification.show()` habla con D-Bus de forma
